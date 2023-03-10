@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
 import pandas as pd
 
+loadList = []
+
 manifest_name = "SS TEST SHIP"
 employee_name = "John Doe"
 
@@ -30,7 +32,22 @@ app = Flask(__name__)
 #homepage route
 def home_page():
     return render_template('test.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name, manifest=manifestMatrix)
+#@app.route("/test1", methods=["POST"])
+def test1():
+    if request.method == "POST":
+        text = request.form
+        first = ""
+        for i in text:
+            first = i
+        loadList.append((first[0], first[1:]))
+    return "DID NOT WORK"
 
+@app.route("/test1", methods=["POST"])
+def printList():
+    empt = ""
+    for i in loadList:
+        empt += i + " "
+    return
 
 #load route
 @app.route("/load")
@@ -42,15 +59,7 @@ def load_page():
 def balance_page():
     return "<h1>BALANCE<h1>"
 
-@app.route("/test1", methods=["POST"])
-def test1():
-    if request.method == "POST":
-        text = request.form
-        first = ""
-        for i in text:
-            first = i
-        return (first[0], first[1:])
-    return "DID NOT WORK"
+
 
 #Allows site to be hosted by running python script
 if __name__ == '__main__':
