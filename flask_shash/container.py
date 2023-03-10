@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import pandas as pd
 
 manifest_name = "SS TEST SHIP"
@@ -42,6 +42,15 @@ def load_page():
 def balance_page():
     return "<h1>BALANCE<h1>"
 
+@app.route("/test1", methods=["POST"])
+def test1():
+    if request.method == "POST":
+        text = request.form
+        first = ""
+        for i in text:
+            first = i
+        return (first[0], first[1:])
+    return "DID NOT WORK"
 
 #Allows site to be hosted by running python script
 if __name__ == '__main__':
