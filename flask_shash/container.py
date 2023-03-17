@@ -52,7 +52,7 @@ def addContainer():
 def printList():
     if request.is_json:
         return jsonify({"list": loadList})
-    return('', 204)
+    return('', 200)
 
 #load route
 @app.route("/load")
