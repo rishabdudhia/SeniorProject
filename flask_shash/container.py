@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 
 loadList = []
@@ -32,22 +32,27 @@ app = Flask(__name__)
 #homepage route
 def home_page():
     return render_template('test.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name, manifest=manifestMatrix)
-#@app.route("/test1", methods=["POST"])
-def test1():
+@app.route("/addContainer", methods=["POST"])
+def addContainer():
     if request.method == "POST":
         text = request.form
-        first = ""
-        for i in text:
-            first = i
-        loadList.append((first[0], first[1:]))
-    return "DID NOT WORK"
+        p = (int(text["row"]), int(text["col"]))
+        
+        loadList.append(p)
+        print(loadList)
+        # first = ""
+        # for i in text:
+        #     first = i
+        # loadList.append((first[0], first[2:]))
+    return ('', 204)
 
-@app.route("/test1", methods=["POST"])
+
+
+@app.route("/printList")
 def printList():
-    empt = ""
-    for i in loadList:
-        empt += i + " "
-    return
+    if request.is_json:
+        return jsonify({"list": loadList})
+    return('', 200)
 
 #load route
 @app.route("/load")
