@@ -9,7 +9,42 @@
     <div style="position: relative; left: 90%;"><button>Log In</button></div>
     <div style="position: relative; left: 85%;"><button>Add comment to LogFile</button></div>
 </head>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+<script>
+    function getContainer(name) {
+        // console.log(name);
+        $('table').on('click', 'td', function() {
+            $(this).css('backgroundColor', 'red');
+        });
+        var r = parseInt(name[0]) - 1;
+        var c = name[2];
+        if (name.length == 4) {
+            c = c + name[3];
+        }
+        c = parseInt(c) - 1;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('addContainer') }} ",
+            data: {"row": r,
+                   "col": c},
+        })
+    }
 
+    function print() {
+        var l;
+        $.ajax({
+            type: "GET", 
+            url: " {{ url_for('printList') }} ",
+            contentType: "application/json",
+            success: function(response) {
+                console.log(response);
+            }
+        })
+        
+        // document.getElementById("list").innerHTML = list;
+    }
+</script>
 <style>
     
     table {
@@ -146,127 +181,128 @@
             
         </table>
     </span>
-    <form action="{{ url_for('test1') }}" method="post">
+    <!-- <form action="{{ url_for('printList') }}" method="post"> -->
     <span name="ship" style="position: relative; top: -200px; left: 900px;">
         <table>
             <tr>
-                <td><button name="8.1" name="8.1">8.1</button></td>
-                <td name="8.2">8.2</td>
-                <td name="8.3">8.3</td>
-                <td name="8.4">8.4</td>
-                <td name="8.5">8.5</td>
-                <td name="8.6">8.6</td>
-                <td name="8.7">8.7</td>
-                <td name="8.8">8.8</td>
-                <td name="8.9">8.9</td>
-                <td name="8.10">8.10</td>
-                <td name="8.11">8.11</td>
-                <td name="8.12">8.12</td>
+                <td name="8.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][0].cont}}</td>
+                <td name="8.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][1].cont}}</td>
+                <td name="8.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][2].cont}}</td>
+                <td name="8.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][3].cont}}</td>
+                <td name="8.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][4].cont}}</td>
+                <td name="8.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][5].cont}}</td>
+                <td name="8.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][6].cont}}</td>
+                <td name="8.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][7].cont}}</td>
+                <td name="8.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][8].cont}}</td>
+                <td name="8.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][9].cont}}</td>
+                <td name="8.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][10].cont}}</td>
+                <td name="8.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][11].cont}}</td>
             </tr>
             <tr>
-                <button><td name="7.1">7.1</td></button>
-                <td name="7.2">7.2</td>
-                <td name="7.3">7.3</td>
-                <td name="7.4">7.4</td>
-                <td name="7.5">7.5</td>
-                <td name="7.6">7.6</td>
-                <td name="7.7">7.7</td>
-                <td name="7.8">7.8</td>
-                <td name="7.9">7.9</td>
-                <td name="7.10">7.10</td>
-                <td name="7.11">7.11</td>
-                <td name="7.12">7.12</td>
+                <td name="7.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][0].cont}}</td>
+                <td name="7.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][1].cont}}</td>
+                <td name="7.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][2].cont}}</td>
+                <td name="7.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][3].cont}}</td>
+                <td name="7.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][4].cont}}</td>
+                <td name="7.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][5].cont}}</td>
+                <td name="7.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][6].cont}}</td>
+                <td name="7.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][7].cont}}</td>
+                <td name="7.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][8].cont}}</td>
+                <td name="7.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][9].cont}}</td>
+                <td name="7.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][10].cont}}</td>
+                <td name="7.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[6][11].cont}}</td>
             </tr>
             <tr>
-                <td name="6.1">6.1</td>
-                <td name="6.2">6.2</td>
-                <td name="6.3">6.3</td>
-                <td name="6.4">6.4</td>
-                <td name="6.5">6.5</td>
-                <td name="6.6">6.6</td>
-                <td name="6.7">6.7</td>
-                <td name="6.8">6.8</td>
-                <td name="6.9">6.9</td>
-                <td name="6.10">6.10</td>
-                <td name="6.11">6.11</td>
-                <td name="6.12">6.12</td>
+                <td name="6.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][0].cont}}</td>
+                <td name="6.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][1].cont}}</td>
+                <td name="6.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][2].cont}}</td>
+                <td name="6.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][3].cont}}</td>
+                <td name="6.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][4].cont}}</td>
+                <td name="6.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][5].cont}}</td>
+                <td name="6.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][6].cont}}</td>
+                <td name="6.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][7].cont}}</td>
+                <td name="6.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][8].cont}}</td>
+                <td name="6.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][9].cont}}</td>
+                <td name="6.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][10].cont}}</td>
+                <td name="6.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[5][11].cont}}</td>
             </tr>
             <tr>
-                <td name="5.1">5.1</td>
-                <td name="5.2">5.2</td>
-                <td name="5.3">5.3</td>
-                <td name="5.4">5.4</td>
-                <td name="5.5">5.5</td>
-                <td name="5.6">5.6</td>
-                <td name="5.7">5.7</td>
-                <td name="5.8">5.8</td>
-                <td name="5.9">5.9</td>
-                <td name="5.10">5.10</td>
-                <td name="5.11">5.11</td>
-                <td name="5.12">5.12</td>
+                <td name="5.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][0].cont}}</td>
+                <td name="5.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][1].cont}}</td>
+                <td name="5.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][2].cont}}</td>
+                <td name="5.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][3].cont}}</td>
+                <td name="5.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][4].cont}}</td>
+                <td name="5.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][5].cont}}</td>
+                <td name="5.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][6].cont}}</td>
+                <td name="5.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][7].cont}}</td>
+                <td name="5.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][8].cont}}</td>
+                <td name="5.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][9].cont}}</td>
+                <td name="5.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][10].cont}}</td>
+                <td name="5.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[4][11].cont}}</td>
             </tr>
             <tr>
-                <td name="4.1">4.1</td>
-                <td name="4.2">4.2</td>
-                <td name="4.3">4.3</td>
-                <td name="4.4">4.4</td>
-                <td name="4.5">4.5</td>
-                <td name="4.6">4.6</td>
-                <td name="4.7">4.7</td>
-                <td name="4.8">4.8</td>
-                <td name="4.9">4.9</td>
-                <td name="4.10">4.10</td>
-                <td name="4.11">4.11</td>
-                <td name="4.12">4.12</td>
+                <td name="4.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][0].cont}}</td>
+                <td name="4.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][1].cont}}</td>
+                <td name="4.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][2].cont}}</td>
+                <td name="4.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][3].cont}}</td>
+                <td name="4.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][4].cont}}</td>
+                <td name="4.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][5].cont}}</td>
+                <td name="4.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][6].cont}}</td>
+                <td name="4.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][7].cont}}</td>
+                <td name="4.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][8].cont}}</td>
+                <td name="4.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][9].cont}}</td>
+                <td name="4.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][10].cont}}</td>
+                <td name="4.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[3][11].cont}}</td>
             </tr>
             <tr>
-                <td name="3.1">3.1</td>
-                <td name="3.2">3.2</td>
-                <td name="3.3">3.3</td>
-                <td name="3.4">3.4</td>
-                <td name="3.5">3.5</td>
-                <td name="3.6">3.6</td>
-                <td name="3.7">3.7</td>
-                <td name="3.8">3.8</td>
-                <td name="3.9">3.9</td>
-                <td name="3.10">3.10</td>
-                <td name="3.11">3.11</td>
-                <td name="3.12">3.12</td>
+                <td name="3.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][0].cont}}</td>
+                <td name="3.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][1].cont}}</td>
+                <td name="3.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][2].cont}}</td>
+                <td name="3.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][3].cont}}</td>
+                <td name="3.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][4].cont}}</td>
+                <td name="3.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][5].cont}}</td>
+                <td name="3.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][6].cont}}</td>
+                <td name="3.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][7].cont}}</td>
+                <td name="3.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][8].cont}}</td>
+                <td name="3.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][9].cont}}</td>
+                <td name="3.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][10].cont}}</td>
+                <td name="3.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[2][11].cont}}</td>
             </tr>
             <tr>
-                <td name="2.1">2.1</td>
-                <td name="2.2">2.2</td>
-                <td name="2.3">2.3</td>
-                <td name="2.4">2.4</td>
-                <td name="2.5">2.5</td>
-                <td name="2.6">2.6</td>
-                <td name="2.7">2.7</td>
-                <td name="2.8">2.8</td>
-                <td name="2.9">2.9</td>
-                <td name="2.10">2.10</td>
-                <td name="2.11">2.11</td>
-                <td name="2.12">2.12</td>
+                <td name="2.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][0].cont}}</td>
+                <td name="2.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][1].cont}}</td>
+                <td name="2.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][2].cont}}</td>
+                <td name="2.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][3].cont}}</td>
+                <td name="2.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][4].cont}}</td>
+                <td name="2.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][5].cont}}</td>
+                <td name="2.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][6].cont}}</td>
+                <td name="2.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][7].cont}}</td>
+                <td name="2.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][8].cont}}</td>
+                <td name="2.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][9].cont}}</td>
+                <td name="2.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][10].cont}}</td>
+                <td name="2.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[1][11].cont}}</td>
             </tr>
             <tr>
-                <td name="1.1" title="test">{{manifest[0][0].cont}}</td>
-                <td name="1.2">{{manifest[0][1].cont}}</td>
-                <td name="1.3">{{manifest[0][2].cont}}</td>
-                <td name="1.4">{{manifest[0][3].cont}}</td>
-                <td name="1.5">{{manifest[0][4].cont}}</td>
-                <td name="1.6">{{manifest[0][5].cont}}</td>
-                <td name="1.7">{{manifest[0][6].cont}}</td>
-                <td name="1.8">{{manifest[0][7].cont}}</td>
-                <td name="1.9">{{manifest[0][8].cont}}</td>
-                <td name="1.10">{{manifest[0][9].cont}}</td>
-                <td name="1.11">{{manifest[0][10].cont}}</td>
-                <td name="1.12">{{manifest[0][11].cont}}</td>
+                <td name="1.1"  onclick="getContainer(this.getAttribute('name'))" title="test">{{manifest[0][0].cont}}</td>
+                <td name="1.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][1].cont}}</td>
+                <td name="1.3" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][2].cont}}</td>
+                <td name="1.4" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][3].cont}}</td>
+                <td name="1.5" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][4].cont}}</td>
+                <td name="1.6" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][5].cont}}</td>
+                <td name="1.7" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][6].cont}}</td>
+                <td name="1.8" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][7].cont}}</td>
+                <td name="1.9" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][8].cont}}</td>
+                <td name="1.10" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][9].cont}}</td>
+                <td name="1.11" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][10].cont}}</td>
+                <td name="1.12" onclick="getContainer(this.getAttribute('name'))">{{manifest[0][11].cont}}</td>
             </tr>
         </table>
     </span>
-</form>
+<!-- </form> -->
     <span style="position: relative; top: -175px;"><button>Back To Home</button></span>
     <span style="display: inline; position: relative; text-align: center; right: -400px; top: -175px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
-    <span style="position: relative; right: -800px; top: -175px;"><button>Next</button></span>
+    <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span>
+    <div id="list"></div>
 </main>
 
 </body>
