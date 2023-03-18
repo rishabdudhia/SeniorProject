@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <title>Team AIAboard</title>
-    <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
-    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
-    <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</h2>
-    <div style="position: relative; left: 90%;"><button>Log In</button></div>
-    <div style="position: relative; left: 85%;"><button>Add comment to LogFile</button></div>
-</head>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
 <script>
@@ -44,6 +36,20 @@
         
         // document.getElementById("list").innerHTML = list;
     }
+
+    function pop() {
+        var popup = document.getElementById('myPopup');
+        popup.classList.toggle('show');
+    }
+
+    function login() {
+        var name = document.getElementById("loginName").value;
+        console.log(name);
+        var printName = document.getElementById("currentEmployee");
+        printName.innerHTML = name;
+        var popup = document.getElementById('myPopup');
+        popup.classList.toggle('show');
+    }
 </script>
 <style>
     
@@ -61,8 +67,55 @@
         width: 25px;
         height: 50px;
     }
+
+    .popup {
+        display: inline-block;
+    }
+    .popup .popuptext {
+        visibility: hidden;
+        width: 260px;
+        background-color: #b1b1b1;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 20px;
+        position:relative;
+        top:50px;
+        right:150px;
+    }
+    .popup .show {
+        visibility: visible;
+        /* -webkit-animation: fadeIn 1s; */
+        animation: fadeIn 1s;
+    }
   
 </style>
+
+<head>
+    <title>Team AIAboard</title>
+    <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
+    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
+    <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+    
+    <!-- <div style="text-align:center;">
+        <a href="#" onclick="pop()">Click</a>
+        <div class="popup">
+          <span class="popuptext" id="myPopup">
+            Enter your name: <input type="text" />
+          </span>
+        </div>
+    </div> -->
+      
+    <div style="position: relative; left: 40%;">
+        <button onclick="pop()">Log In</button>
+        <div class="popup">
+            <span class="popuptext" id="myPopup">
+              Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
+            </span>
+        </div>
+    </div>
+</head>
+
 <body>
 
 
@@ -302,8 +355,11 @@
     <span style="position: relative; top: -175px;"><button>Back To Home</button></span>
     <span style="display: inline; position: relative; text-align: center; right: -400px; top: -175px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
     <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span>
+    <div style="position: relative; right: -1050px; top: -160px;"><button>Add comment to LogFile</button></div>
     <div id="list"></div>
 </main>
 
 </body>
 </html>
+
+<!-- position: relative; left: 85%; -->
