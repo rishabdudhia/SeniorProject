@@ -49,7 +49,8 @@
         $.ajax({
             type: "POST",
             url: " {{ url_for('logComment') }} ",
-            data: {"comment": s},
+            data: {"name": name,
+                   "comment": s},
         })
         var printName = document.getElementById("currentEmployee");
         printName.innerHTML = name;
@@ -102,7 +103,7 @@
     <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
     <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
-      
+    <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
     <div style="position: relative; left: 40%;">
         <button onclick="pop()">Log In</button>
         <div class="popup">

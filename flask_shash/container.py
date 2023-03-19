@@ -51,7 +51,8 @@ def logComment():
     if request.method == "POST":
         text = request.form
         p = text["comment"]
-        print(p)
+        employee_name = text["name"]
+        print(employee_name)
     return ('', 204)
 
 
