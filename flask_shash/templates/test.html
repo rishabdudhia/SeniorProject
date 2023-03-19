@@ -45,6 +45,12 @@
     function login() {
         var name = document.getElementById("loginName").value;
         console.log(name);
+        var s = "New log in: " + name + " logged in."
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('logComment') }} ",
+            data: {"comment": s},
+        })
         var printName = document.getElementById("currentEmployee");
         printName.innerHTML = name;
         var popup = document.getElementById('myPopup');
@@ -73,13 +79,13 @@
     }
     .popup .popuptext {
         visibility: hidden;
-        width: 260px;
-        background-color: #b1b1b1;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 20px;
         position:relative;
+        width: 2500px;
+        background-color: gray;
+        color: white;
+        text-align: center;
+        border-radius: 8px;
+        padding: 20px;
         top:50px;
         right:150px;
     }
@@ -96,15 +102,6 @@
     <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
     <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
-    
-    <!-- <div style="text-align:center;">
-        <a href="#" onclick="pop()">Click</a>
-        <div class="popup">
-          <span class="popuptext" id="myPopup">
-            Enter your name: <input type="text" />
-          </span>
-        </div>
-    </div> -->
       
     <div style="position: relative; left: 40%;">
         <button onclick="pop()">Log In</button>

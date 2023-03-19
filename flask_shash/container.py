@@ -46,6 +46,13 @@ def addContainer():
         # loadList.append((first[0], first[2:]))
     return ('', 204)
 
+@app.route("/logComment", methods=["POST"])
+def logComment():
+    if request.method == "POST":
+        text = request.form
+        p = text["comment"]
+        print(p)
+    return ('', 204)
 
 
 @app.route("/printList")
