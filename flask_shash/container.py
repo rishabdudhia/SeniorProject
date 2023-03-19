@@ -27,7 +27,7 @@ for col in range(0,8):
 app = Flask(__name__)
 
 #"/" is root page of app
-@app.route("/")
+@app.route("/choice")
 
 #homepage route
 def home_page():
@@ -45,6 +45,10 @@ def addContainer():
         #     first = i
         # loadList.append((first[0], first[2:]))
     return ('', 204)
+
+@app.route("/")
+def navigate():
+    return render_template('homepage.html', EMPLOYEE_NAME=employee_name)
 
 
 
