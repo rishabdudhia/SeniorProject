@@ -6,6 +6,13 @@ loadList = []
 manifest_name = "SS TEST SHIP"
 employee_name = "John Doe"
 
+dictOfMoves = {}
+l = [((0,1), (0,6)), ((0,2), (0,1)), ((1,0),(0,1)), ((2,1),(1,2)), ((2,10),(2,11))]
+for i in range(len(l)):
+    dictOfMoves["start " + str(i+1)] = str(l[i][0])
+    dictOfMoves["end " + str(i+1)] = str(l[i][1])
+
+
 manifests = []
 for case in range(1,6):
     manifests.append( pd.read_csv('../ship_cases/ShipCase'+str(case)+'.txt',header=None,names=["col","row","weight","cont"]) )
@@ -60,16 +67,13 @@ def load_page():
     return render_template('loadP1.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name)
 
 #balance route
-@app.route("/balance")
-# def balance_page():
-#     return "<h1>BALANCE<h1>"
+@app.route("/balance", methods=["POST"])
 def solveBalance():
-    if request.method == "GET":
-        l = [((0,1), (0,6)), ((0,2), (0,1))]
+    if request.method == "POST":
+        currStep = request.form["step"]
         d = {}
-        for i in range(len(l)):
-            d["start " + str(i+1)] = str(l[i][0])
-            d["end " + str(i+1)] = str(l[i][1])
+        d["start"] = dictOfMoves["start " + str(currStep)]
+        d["end"] = dictOfMoves["end " + str(currStep)]
         # print("HERE")
         return jsonify({"data": d})
     return("", 200)

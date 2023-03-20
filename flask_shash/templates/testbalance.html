@@ -12,27 +12,44 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
 <script>
-    var listOfSteps;
-    var currStep;
+    var currStep = 1;
     $(document).ready(function(){
-        // console.log("about to call");
         $.ajax({ 
-            type: "GET",
+            type: "POST",
             url: " {{ url_for('solveBalance') }} ",
+            data: {"step": currStep},
+            async: false,
             success: function(response){
-                // console.log(response.data);
-                listOfSteps = response.data;
+                console.log(response.data);
+                var step = response.data;
                 currStep = 1;
-                const start = "start ";
-                const end = "end ";
-                document.getElementById('startLoc').innerHTML = listOfSteps[start + currStep.toString()];
-                document.getElementById('endLoc').innerHTML = listOfSteps[end + currStep.toString()];
-                currStep = currStep + 1;
+                const start = "start";
+                const end = "end";
+                document.getElementById('startLoc').innerHTML = step[start];
+                document.getElementById('endLoc').innerHTML = step[end];
                 document.getElementById('displaySteps').toggleAttribute('hidden');
+                currStep = currStep + 1;
             }
         });
     });
+    
 
+    function nextStep() {
+        console.log("called");
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('solveBalance') }} ",
+            data: {"step": currStep},
+            async: false,
+            success: function(response){
+                console.log(response.data);
+                var step = response.data;
+                document.getElementById('startLoc').innerHTML = step["start"];
+                document.getElementById('endLoc').innerHTML = step["end"];
+                currStep = currStep + 1;
+            }
+        });
+    }
 
     function getContainer(name) {
         // console.log(name);
@@ -323,7 +340,7 @@
 <!-- </form> -->
     <span style="position: relative; top: -175px;"><button>Back To Home</button></span>
     <span id="estimation" style="display: inline; position: relative; text-align: center; right: -400px; top: -175px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
-    <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span>
+    <span style="position: relative; right: -800px; top: -175px;" disabled="false"><button class="nextButton" id="nextButton" onclick="nextStep()">Next</button></span>
     <div id="list"></div>
 </main>
 
