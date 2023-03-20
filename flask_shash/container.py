@@ -31,7 +31,7 @@ app = Flask(__name__)
 
 #homepage route
 def home_page():
-    return render_template('test.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name, manifest=manifestMatrix)
+    return render_template('testbalance.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name, manifest=manifestMatrix)
 @app.route("/addContainer", methods=["POST"])
 def addContainer():
     if request.method == "POST":
@@ -61,8 +61,19 @@ def load_page():
 
 #balance route
 @app.route("/balance")
-def balance_page():
-    return "<h1>BALANCE<h1>"
+# def balance_page():
+#     return "<h1>BALANCE<h1>"
+def solveBalance():
+    if request.method == "GET":
+        l = [((0,1), (0,6)), ((0,2), (0,1))]
+        d = {}
+        for i in range(len(l)):
+            d["start " + str(i+1)] = str(l[i][0])
+            d["end " + str(i+1)] = str(l[i][1])
+        # print("HERE")
+        return jsonify({"data": d})
+    return("", 200)
+
 
 
 
