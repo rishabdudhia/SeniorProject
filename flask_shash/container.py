@@ -66,7 +66,7 @@ def addContainer():
 
 @app.route("/")
 def navigate():
-    return render_template('homepage.html', EMPLOYEE_NAME=employee_name)
+    return render_template('homepage.html', EMPLOYEE_NAME=backend.employee_name)
 
 @app.route("/services", methods=['POST'])
 def services():
@@ -74,7 +74,7 @@ def services():
         uploadedFile = request.files["file"]
         uploadedFile.save(secure_filename(uploadedFile.filename))
         print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
-    return render_template('choices.html', EMPLOYEE_NAME=employee_name)
+    return render_template('choices.html', EMPLOYEE_NAME=backend.employee_name)
 
 @app.route("/logIn", methods=["POST"])
 def logIn():
