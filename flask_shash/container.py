@@ -1,13 +1,24 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 
-loadList = []
+class Back:
+    unloadList = []
+    loadList = []
+    manifest_name = "SS TEST SHIP"
+    employee_name = "John Doe"
+    manifests = []
+    
+backend = Back()
 
-manifest_name = "SS TEST SHIP"
-employee_name = "John Doe"
+def getEmployee():
+    return backend.employee_name
 
-manifests = []
+def setEmployee(name):
+    backend.employee_name = name
+    return
+
 for case in range(1,6):
+    manifests = backend.manifests
     manifests.append( pd.read_csv('../ship_cases/ShipCase'+str(case)+'.txt',header=None,names=["col","row","weight","cont"]) )
     manifests[case-1]['col'] = manifests[case-1]['col'].str.replace("[","", regex=True)
     manifests[case-1]['row'] = manifests[case-1]['row'].str.replace("]","", regex=True)
@@ -31,33 +42,51 @@ app = Flask(__name__)
 
 #homepage route
 def home_page():
-    return render_template('test.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name, manifest=manifestMatrix)
+    return render_template('test.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=manifestMatrix)
 @app.route("/addContainer", methods=["POST"])
 def addContainer():
     if request.method == "POST":
         text = request.form
         p = (int(text["row"]), int(text["col"]))
         
-        loadList.append(p)
-        print(loadList)
+        backend.unloadList.append(p)
+        print(backend.unloadList)
         # first = ""
         # for i in text:
         #     first = i
-        # loadList.append((first[0], first[2:]))
+        # unloadList.append((first[0], first[2:]))
     return ('', 204)
 
+@app.route("/logIn", methods=["POST"])
+def logIn():
+    if request.method == "POST":
+        text = request.form
+        p = text["comment"]
+        s1 = getEmployee() + " signed out"
+        setEmployee(text["name"])
+        print(s1) #addContainerCommenttoLogFile(s1)
+        print(p) #addContainerCommenttoLogFile(p)
+    return ('', 204)
 
 
 @app.route("/printList")
 def printList():
     if request.is_json:
-        return jsonify({"list": loadList})
+        return jsonify({"list": backend.unloadList})
     return('', 200)
+
+@app.route("/newContainers", methods=['POST']) 
+def newContainers():
+    if request.method == 'POST':
+        containerName = request.form["containerName"]
+        backend.loadList.append(containerName)
+        print(backend.loadList)
+    return ('', 204)
 
 #load route
 @app.route("/load")
 def load_page():
-    return render_template('loadP1.html',MANIFEST_NAME=manifest_name, EMPLOYEE_NAME=employee_name)
+    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name)
 
 #balance route
 @app.route("/balance")
