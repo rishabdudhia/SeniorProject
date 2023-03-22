@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+from werkzeug.utils import secure_filename
 
 class Back:
     unloadList = []
@@ -38,7 +39,7 @@ for col in range(0,8):
 app = Flask(__name__)
 
 #"/" is root page of app
-@app.route("/")
+@app.route("/choice")
 
 #homepage route
 def home_page():
@@ -57,6 +58,18 @@ def addContainer():
         # unloadList.append((first[0], first[2:]))
     return ('', 204)
 
+@app.route("/")
+def navigate():
+    return render_template('homepage.html', EMPLOYEE_NAME=employee_name)
+
+@app.route("/services", methods=['POST'])
+def services():
+    if request.method == 'POST':
+        uploadedFile = request.files["file"]
+        uploadedFile.save(secure_filename(uploadedFile.filename))
+        print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
+    return render_template('choices.html', EMPLOYEE_NAME=employee_name)
+
 @app.route("/logIn", methods=["POST"])
 def logIn():
     if request.method == "POST":
@@ -67,6 +80,7 @@ def logIn():
         print(s1) #addContainerCommenttoLogFile(s1)
         print(p) #addContainerCommenttoLogFile(p)
     return ('', 204)
+
 
 
 @app.route("/printList")

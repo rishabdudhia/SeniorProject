@@ -367,7 +367,9 @@
         </table>
     </span>
 <!-- </form> -->
-    <span style="position: relative; top: -175px;"><button>Back To Home</button></span>
+    <form action="{{ url_for('navigate') }}" method="GET">
+        <span style="position: relative; top: -175px;"><button>Back To Home</button></span>
+    </form>
     <span style="display: inline; position: relative; text-align: center; right: -400px; top: -175px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
     <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span>
     <div style="position: relative; right: -1050px; top: -160px;"><button>Add comment to LogFile</button></div>
