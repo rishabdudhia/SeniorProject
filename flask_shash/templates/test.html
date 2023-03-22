@@ -51,7 +51,7 @@
         var s = "New log in: " + name + " logged in."
         $.ajax({
             type: "POST",
-            url: " {{ url_for('logComment') }} ",
+            url: " {{ url_for('logIn') }} ",
             data: {"name": name,
                    "comment": s},
         })
@@ -100,8 +100,8 @@
         text-align: center;
         border-radius: 8px;
         padding: 20px;
-        top:50px;
-        right:150px;
+        top:100px;
+        right:250px;
     }
     .popup .show {
         visibility: visible;
