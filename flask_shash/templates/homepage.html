@@ -26,9 +26,11 @@
 <main>
     <h2 style="display: inline; position: relative; left: 40%;">Please upload new manifest:</h2>
     <br/>
-    <input style="position: relative; left: 46%;" type="file" name="file"/>
-    <div style="text-align: center;"><button onclick="upload()">Upload Manifest</button></div>
-
+    <form action=" {{ url_for('services')}} " method="post" enctype="multipart/form-data">
+        <input style="position: relative; left: 46%;" type="file" name="file"/>
+        <div style="text-align: center;"><input type="submit"></div>
+    </form>
+    
     <!-- <h3 style="position: relative; left: 43%;">Please select type of service:</h3>
     <div style="display: inline; position: relative; left:49%;"><form action="{{ url_for('home_page') }}" method="GET"><button name="service" disabled="true">Balance</button></form></div>
     <div style="display: inline; position: relative; left:48%;"><form action="{{ url_for('home_page') }}" method="GET"><button name="service" disabled="true">Load/Unload</button></form></div> -->

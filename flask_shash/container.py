@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+from werkzeug.utils import secure_filename
 
 loadList = []
 
@@ -50,6 +51,13 @@ def addContainer():
 def navigate():
     return render_template('homepage.html', EMPLOYEE_NAME=employee_name)
 
+@app.route("/services", methods=['POST'])
+def services():
+    if request.method == 'POST':
+        uploadedFile = request.files["file"]
+        uploadedFile.save(secure_filename(uploadedFile.filename))
+        print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
+    return render_template('choices.html', EMPLOYEE_NAME=employee_name)
 
 
 @app.route("/printList")
