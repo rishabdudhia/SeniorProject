@@ -38,8 +38,11 @@
     }
 
     function pop() {
-        var popup = document.getElementById('myPopup');
+        var popup = document.getElementById('loginPop');
         popup.classList.toggle('show');
+    }
+    function startLoadingContainers() {
+        document.getElementById('loadPop').classList.toggle('show');
     }
 
     function login() {
@@ -54,8 +57,18 @@
         })
         var printName = document.getElementById("currentEmployee");
         printName.innerHTML = name;
-        var popup = document.getElementById('myPopup');
+        var popup = document.getElementById('loginPop');
         popup.classList.toggle('show');
+    }
+
+    function newContainer() {
+        var containerName = document.getElementById("containerName").value;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('newContainers') }} ",
+            data: {"containerName": containerName}
+        })
+        document.getElementById("containerName").value = "";
     }
 </script>
 <style>
@@ -105,10 +118,14 @@
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
     <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
     <div style="position: relative; left: 40%;">
-        <button onclick="pop()">Log In</button>
+        <button onclick="pop()">Log In</button><button onclick="startLoadingContainers()">Load Containers</button>
         <div class="popup">
-            <span class="popuptext" id="myPopup">
+            <span class="popuptext" id="loginPop">
               Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
+            </span>
+            <br/>
+            <span style="right: 70%; top: 100px;" class="popuptext" id="loadPop">
+                Enter the name of the container to be loaded: <input type="text" id="containerName"/> <button onclick="newContainer()">Submit</button><button onclick="startLoadingContainers()">Done</button>
             </span>
         </div>
     </div>

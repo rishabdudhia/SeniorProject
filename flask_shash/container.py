@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 
+unloadList = []
 loadList = []
-
 manifest_name = "SS TEST SHIP"
 employee_name = "John Doe"
 
@@ -38,12 +38,12 @@ def addContainer():
         text = request.form
         p = (int(text["row"]), int(text["col"]))
         
-        loadList.append(p)
-        print(loadList)
+        unloadList.append(p)
+        print(unloadList)
         # first = ""
         # for i in text:
         #     first = i
-        # loadList.append((first[0], first[2:]))
+        # unloadList.append((first[0], first[2:]))
     return ('', 204)
 
 @app.route("/logComment", methods=["POST"])
@@ -59,8 +59,16 @@ def logComment():
 @app.route("/printList")
 def printList():
     if request.is_json:
-        return jsonify({"list": loadList})
+        return jsonify({"list": unloadList})
     return('', 200)
+
+@app.route("/newContainers", methods=['POST']) 
+def newContainers():
+    if request.method == 'POST':
+        containerName = request.form["containerName"]
+        loadList.append(containerName)
+        print(loadList)
+    return ('', 204)
 
 #load route
 @app.route("/load")
