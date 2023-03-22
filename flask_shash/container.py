@@ -1,6 +1,15 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import numpy as np
+from .heuristic import *
+from queue import PriorityQueue
 from werkzeug.utils import secure_filename
+
+
+nrows=8
+ncols=12
+
+shipCase = 1
 
 class Back:
     unloadList = []
@@ -33,13 +42,23 @@ for case in range(1,6):
     manifests[case-1]['cont'] = manifests[case-1]['cont'].str.replace("UNUSED","", regex=True)
 
 manifest = manifests[0]
-
 manifestMatrix = []
 for col in range(0,8):
     rows = []
     for row in range(0,12):
         rows.append(manifest.loc[(col*12)+row])
     manifestMatrix.append(rows)
+
+
+testManifest = ( pd.read_csv('./ship_cases/ShipCase'+str(shipCase)+'.txt',header=None,names=["col","row","weight","cont"]) )
+testManifest['col'] = testManifest['col'].str.replace("\[| ","", regex=True)
+testManifest['row'] = testManifest['row'].str.replace("\]| ","", regex=True)
+testManifest['weight'] = testManifest['weight'].str.replace("{|}| ","", regex=True)
+testManifest['cont'] = (testManifest['cont'].str[1:])
+
+testManifestArray = np.array(testManifest.loc[:]).reshape(nrows,ncols,4)
+testBuffer = np.zeros(4*24).reshape(4,24)
+
 
 #instantiate flask app
 app = Flask(__name__)
@@ -126,3 +145,6 @@ def solveBalance():
 #Allows site to be hosted by running python script
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
