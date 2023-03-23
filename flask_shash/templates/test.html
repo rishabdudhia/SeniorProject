@@ -12,7 +12,10 @@
         // });
         if (selecting == true) {
             var cell = document.getElementById(name)
-            cell.style.background = 'red';
+            if (cell.innerHTML != " NAN") {
+                cell.style.background = 'red';
+            }
+            
             var r = parseInt(name[0]); // - 1;
             var c = name[2];
             if (name.length == 4) {
@@ -47,10 +50,17 @@
         // document.getElementById("list").innerHTML = list;
     }
 
-    function pop() {
-        var popup = document.getElementById('loginPop');
-        popup.classList.toggle('show');
+    function pop(id) {
+        if (id == "comment") {
+            var popup = document.getElementById('commentPop');
+            popup.classList.toggle('show');
+        }
+        else {
+            var popup = document.getElementById('loginPop');
+            popup.classList.toggle('show');
+        }
     }
+
     function startLoadingContainers() {
         document.getElementById('loadPop').classList.toggle('show');
     }
@@ -69,6 +79,36 @@
         printName.innerHTML = name;
         var popup = document.getElementById('loginPop');
         popup.classList.toggle('show');
+        document.getElementById("loginName").value = "";
+    }
+
+    function logComment() {
+        var comment = document.getElementById("commentToLog").value;
+        console.log(comment);
+        var name = document.getElementById("currentEmployee").innerHTML;
+        comment = "MANUAL COMMENT FROM USER (" + name.toUpperCase() + "): " + comment;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('addComment') }} ",
+            data: {"comment": comment},
+        })
+        var popup = document.getElementById('commentPop');
+        popup.classList.toggle('show');
+        document.getElementById("commentToLog").value = "";
+    }
+
+    function getMoves() {
+        // console.log("here")
+        var t = document.getElementById("shipGrid");
+        var cell;
+        for (var r = 0, n = t.rows.length; r < n; r++) {
+            for (var c = 0, m = t.rows[r].cells.length; c < m; c++) {
+                cell = t.rows[r].cells[c];
+                if (cell.innerHTML == " ") cell.style.background = 'white';
+                else if (cell.innerHTML == " NAN") cell.style.background = 'black';
+                console.log(cell.innerHTML)
+            }
+        }
     }
 
     function newContainer() {
@@ -128,7 +168,7 @@
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
     <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
     <div style="position: relative; left: 40%;">
-        <button onclick="pop()">Log In</button><button onclick="startLoadingContainers()">Load Containers</button>
+        <button id="logIn" onclick="pop(this.id)">Log In</button><button onclick="startLoadingContainers()">Load Containers</button>
         <div class="popup">
             <span class="popuptext" id="loginPop">
               Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
@@ -137,12 +177,16 @@
             <span style="right: 70%; top: 100px;" class="popuptext" id="loadPop">
                 Enter the name of the container to be loaded: <input type="text" id="containerName"/> <button onclick="newContainer()">Submit</button><button onclick="startLoadingContainers()">Done</button>
             </span>
+            <br/>
+            <span style="right: 70%; top: 100px;" class="popuptext" id="commentPop">
+                Enter the comment you would like to add to the log file: <input type="text" id="commentToLog"/> <button onclick="logComment()">Submit</button>
+            </span>
         </div>
     </div>
 </head>
 
-<body>
-
+<body onload="getMoves()">
+<!-- <body> -->
 
 
 
@@ -261,7 +305,7 @@
     </span>
     <!-- <form action="{{ url_for('printList') }}" method="post"> -->
     <span name="ship" style="position: relative; top: -200px; left: 900px;">
-        <table>
+        <table id="shipGrid">
             <tr>
                 <td name="8.1" id="8.1" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][0].cont}}</td>
                 <td name="8.2" id="8.2" onclick="getContainer(this.getAttribute('name'))">{{manifest[7][1].cont}}</td>
@@ -383,7 +427,7 @@
     <span style="display: inline; position: relative; text-align: center; right: -400px; top: -175px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
     <span style="position: relative; right: -800px; top: -175px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
     <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span>
-    <div style="position: relative; right: -1050px; top: -160px;"><button>Add comment to LogFile</button></div>
+    <div style="position: relative; right: -1050px; top: -160px;"><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
     <div id="list"></div>
 </main>
 

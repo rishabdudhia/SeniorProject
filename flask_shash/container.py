@@ -87,6 +87,13 @@ def logIn():
         print(p) #addContainerCommenttoLogFile(p)
     return ('', 204)
 
+@app.route("/addComment", methods=['POST'])
+def addComment():
+    if request.method == "POST":
+        text = request.form
+        p = text["comment"]
+        print(p) #addContainerCommenttoLogFile(p)
+    return ('', 204)
 
 
 @app.route("/printList")
