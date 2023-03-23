@@ -8,6 +8,8 @@ ncols=12
 #Code Chunk from official python priority queue page
 from dataclasses import dataclass, field
 from typing import Any
+import numpy as np
+from queue import PriorityQueue
 
 @dataclass(order=True)
 class PrioritizedItem:
@@ -118,8 +120,8 @@ def costCol(array, curCol, newCol, empty=0):
     
     
     if(curCol<newCol):
-        localMax = max(hs[curCol+1:newCol]) 
-        print(localMax,h1,h2)
+        localMax = max(hs[curCol+1:newCol+1]) 
+        #print(localMax,h1,h2)
         if(h2>=h1 and localMax<h1):
             return abs(0) + abs(curCol-newCol) + abs(localMax-h2-1) - empty
         if(h2>=h1 or localMax>=h1):
@@ -127,8 +129,8 @@ def costCol(array, curCol, newCol, empty=0):
         else:
             return abs(h1-localMax) + abs(newCol-curCol) + abs(localMax-h2-1) 
     else:
-        localMax = max(hs[newCol+1:curCol]) + 1
-#         print(localMax,h1,h2)
+        localMax = max(hs[newCol+1:curCol+1]) + 1
+#         #print(localMax,h1,h2)
         if(h2>=h1 and localMax<h1):
             return abs(localMax-h1) + abs(curCol-newCol) + abs(localMax-h2-1) - empty
         if(h2>=h1 or localMax>=h1):
@@ -265,7 +267,7 @@ def balanceHeuristicPicked(state, colPick=-1, cols=ncols):
 #when tracking moves, compensate coordinates +1 for dropoff location to match pick up
     #**coordinates start at 1, not 0**
 
-def branchingBalance(testManifestArray=testManifestArray,ncols=ncols,):
+def branchingBalance(testManifestArray,ncols=ncols):
     comp = 1
 
     #initial state:
@@ -299,9 +301,9 @@ def branchingBalance(testManifestArray=testManifestArray,ncols=ncols,):
         if not queueD.empty():
             currentState=queueD.get().item
             if(balanced(currentState)):
-                print("Already Balanced")
+                # print("Already Balanced")
                 finalState.append(currentState)
-                break;
+                break
         #Choose which container to move
             #creating and adding those states
             for w in range(0,ncols):
@@ -314,7 +316,7 @@ def branchingBalance(testManifestArray=testManifestArray,ncols=ncols,):
                     extraCost=0
                     if len(currentState.movesList) > 0:
                         extraCost = costCol(currentState.state.ship,currentState.movesList[-1][1][1]-1,w,empty=1)
-                        print("extra",extraCost)
+                        # print("extra",extraCost)
 
                     newPickState = StateWrapper(currentState.state, colPick=w, h=balanceHeuristicPicked(currentState, colPick=w), moves=currentState.moves, cost=currentState.cost + extraCost, movesList=currentState.movesList.copy())
 
@@ -324,9 +326,9 @@ def branchingBalance(testManifestArray=testManifestArray,ncols=ncols,):
         
         while not queueP.empty():
             currentState = queueP.get().item
-            print("\n\nPick State", currentState.state.ship[stackHeight(currentState.state.ship,col=currentState.colPick), currentState.colPick], "with h =",currentState.h)
+            # print("\n\nPick State", currentState.state.ship[stackHeight(currentState.state.ship,col=currentState.colPick), currentState.colPick], "with h =",currentState.h)
             if(balanced(currentState)):
-                print("Already Balanced")
+                # print("Already Balanced")
                 finalState.append(currentState)
                 break
             #Create new branch
@@ -340,17 +342,19 @@ def branchingBalance(testManifestArray=testManifestArray,ncols=ncols,):
                     newDropState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=currentState.colPick), currentState.colPick].tolist()],[stackHeight(newDropState.state.ship,col=newCol)+comp,newCol+comp]])
                     
                     if(balanced(newDropState)):
-                        print("[BALANCED]Droping container at", newCol, "for h =", newDropState.h)
+                        # print("[BALANCED]Droping container at", newCol, "for h =", newDropState.h)
                         finalState.append(newDropState)
     #                     break;
                     elif((newDropState not in duplicateState)):
                         duplicateState.append(newDropState.state)
                     #add h of currentState (parent) and new Drop
                         queueD.put(PrioritizedItem(currentState.h + newDropState.h,newDropState))
-                        print("\t  Droping container at", newCol, "for h =", newDropState.h)
+                        # print("\t  Droping container at", newCol, "for h =", newDropState.h)
         depth+=1
 
         if (depth>=20 or len(finalState)>3):
             break
+
+    best = sorted(finalState,key=lambda x: x.cost)[0]
     
-    return initialState, duplicateState, finalState
+    return initialState, best, duplicateState, finalState
