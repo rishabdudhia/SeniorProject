@@ -101,7 +101,7 @@ def services():
         backend.loadList = []
         backend.manifests = []
         backend.manifest_name = uploadedFile.filename
-        print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
+        print("Manifest file name (" + backend.manifest_name + ") has been uploaded")
         testManifest = ( pd.read_csv(str(uploadedFile.filename),header=None,names=["col","row","weight","cont"]) )
         testManifest['col'] = testManifest['col'].str.replace("\[| ","", regex=True)
         testManifest['row'] = testManifest['row'].str.replace("\]| ","", regex=True)
@@ -151,7 +151,7 @@ def newContainers():
 #load route
 @app.route("/load")
 def load_page():
-    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=manifestMatrix)
+    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=backend.readManifest)
 
 #balance route
 @app.route("/balance")
@@ -171,6 +171,7 @@ def getStep():
         d["startPos"] = backend.dictOfMoves["start " + str(s)]
         d["endPos"] = backend.dictOfMoves["end " + str(s)]
         d["name"] = backend.dictOfMoves["name " + str(s)]
+        d["totalMoves"] = str(len(backend.dictOfMoves) / 3)
         print(d)
         return jsonify({"data": d})
     return("", 200)
