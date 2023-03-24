@@ -73,6 +73,11 @@ def services():
     if request.method == 'POST':
         uploadedFile = request.files["file"]
         uploadedFile.save(secure_filename(uploadedFile.filename))
+        # backend = Back()
+        backend.unloadList = []
+        backend.loadList = []
+        backend.manifests = []
+        backend.manifest_name = uploadedFile.filename
         print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
     return render_template('choices.html', EMPLOYEE_NAME=backend.employee_name)
 
@@ -106,7 +111,9 @@ def printList():
 def newContainers():
     if request.method == 'POST':
         containerName = request.form["containerName"]
-        backend.loadList.append(containerName)
+        containerWeight = request.form["containerWeight"]
+        p = [containerWeight, containerName]
+        backend.loadList.append(p)
         print(backend.loadList)
     return ('', 204)
 

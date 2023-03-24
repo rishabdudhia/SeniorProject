@@ -109,13 +109,30 @@
 
     function newContainer() {
         var containerName = document.getElementById("containerName").value;
+        var containerWeight = document.getElementById("containerWeight").value;
         $.ajax({
             type: "POST",
             url: " {{ url_for('newContainers') }} ",
-            data: {"containerName": containerName}
+            data: {"containerName": containerName,
+                   "containerWeight": containerWeight}
         })
         document.getElementById("containerName").value = "";
+        document.getElementById("containerWeight").value = "";
+        document.getElementById("submitContainer").disabled = true;
+        // document.getElementById("doneContainers").disabled = true;
     }
+
+    function success() {
+        if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
+            document.getElementById("submitContainer").disabled = false;
+            document.getElementById("doneContainers").disabled = false;
+        }
+        else {
+            document.getElementById("submitContainer").disabled = true;
+            document.getElementById("doneContainers").disabled = true;
+        }
+    }
+
 </script>
 <style>
     
@@ -135,12 +152,13 @@
     }
 
     .popup {
-        display: inline-block;
+        /* display: inline-block; */
+        display: flex;
     }
     .popup .popuptext {
         visibility: hidden;
         position:relative;
-        width: 2500px;
+        width: 3000px;
         background-color: gray;
         color: white;
         text-align: center;
@@ -170,8 +188,10 @@
               Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
             </span>
             <br/>
-            <span style="right: 80%; top: 100px;" class="popuptext" id="loadPop">
-                Enter the name of the container to be loaded: <input type="text" id="containerName"/> <button onclick="newContainer()">Submit</button><button onclick="startLoadingContainers()">Done</button>
+            <span style="right: 40%; top: 40px;" class="popuptext" id="loadPop">
+                Enter the name of the container to be loaded <input type="text" id="containerName" onkeyup="success()"/> <br/>
+                Enter the weight of the container to be loaded <input type="text" id="containerWeight" onkeyup="success()"/> <br/>
+                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" disabled onclick="startLoadingContainers()">Done</button>
             </span>
             <br/>
             <span style="right: 80%; top: 100px;" class="popuptext" id="commentPop">
@@ -191,7 +211,7 @@
         Please select containers requested for unloading from SHIP GRID: <br/>
         Press "Done" below the grid when done selecting containers 
     </div>
-    <span id = "buffer" style="position: relative; top: 150px;">
+    <span id = "buffer" style="position: relative; top: 50px;">
         <div style="position: relative; left: 23%;" id="bufferLabel">BUFFER GRID</div><br/>
         <table>
             <tr>
@@ -302,7 +322,7 @@
         </table>
     </span>
     <!-- <form action="{{ url_for('printList') }}" method="post"> -->
-    <span name="ship" style="position: relative; top: -310px; left: 900px;">
+    <span name="ship" style="position: relative; top: -410px; left: 900px;">
         <div style="position: relative; left: 11%;" id="bufferLabel">SHIP GRID</div><br/>
         <table id="shipGrid">
             <tr>
@@ -421,10 +441,10 @@
     </span>
 <!-- </form> -->
     <form action="{{ url_for('navigate') }}" method="GET">
-        <span style="position: relative; top: -300px;"><button>Back To Home</button></span>
+        <span style="position: relative; top: -400px;"><button>Back To Home</button></span>
     </form>
-    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -320px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
-    <span style="position: relative; right: -870px; top: -315px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
+    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -420px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
+    <span style="position: relative; right: -870px; top: -415px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
     <!-- <span style="position: relative; right: -920px; top: -315px;"><button onclick="print()">Next</button></span> -->
     <!-- <div style="position: relative; right: -1050px; top: -280px;"><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div> -->
     <!-- <div id="list"></div> -->
