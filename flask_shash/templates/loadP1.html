@@ -55,11 +55,11 @@
         document.getElementById('loadPop').classList.toggle('show');
         if (selecting == 0) {
             document.getElementById("Next_Done_Button").disabled = false;
-            // var c;
-            // for (var n = 0; n < red.length; ++n) {
-            //     c = document.getElementById(red[n]);
-            //     c.style.background = 'white';
-            // }
+            var c;
+            for (var n = 0; n < red.length; ++n) {
+                c = document.getElementById(red[n]);
+                c.style.background = 'white';
+            }
             red = [];
         }
         selecting = selecting + 1;
