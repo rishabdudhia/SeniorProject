@@ -113,7 +113,7 @@ def newContainers():
 #load route
 @app.route("/load")
 def load_page():
-    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name)
+    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=manifestMatrix)
 
 #balance route
 @app.route("/balance", methods=["POST"])
