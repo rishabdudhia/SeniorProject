@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import pandas as pd
 import numpy as np
 from heuristic import *
@@ -181,6 +181,14 @@ def addComment():
         addUserCommenttoLogFile(p)
     return ('', 204)
 
+@app.route("/normalComment", methods=['POST'])
+def normalComment():
+    if request.method == "POST":
+        text = request.form
+        p = text["comment"]
+        print(p) #addContainerCommenttoLogFile(p)
+        addContainerCommenttoLogFile(p)
+    return ('', 204)
 
 @app.route("/printList")
 def printList():
@@ -227,6 +235,13 @@ def getStep():
         print(d)
         return jsonify({"data": d})
     return("", 200)
+
+@app.route('/download')
+def downloadManifest ():
+    path = backend.manifest_name
+    dot = backend.manifest_name.find('.')
+    newName = backend.manifest_name[:dot] + "_UPDATED.txt"
+    return send_file(path, as_attachment=True, download_name=newName)
     
 
 def createMoveDict(testArray):

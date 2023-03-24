@@ -4,14 +4,6 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
 <script>
-    //learned jquery from w3schools, this page amongst others linked on the left https://www.w3schools.com/jquery/jquery_selectors.asp
-    // $(document).ready(function(){
-    //     $('#shipGrid td').each(function(){
-    //         if ($(this).text() == 'NAN') {
-    //             $(this).css('background-color','#00000');
-    //         }
-    //     });
-    // });
     var currStep = 0;
     var totalNumMoves = 0;
     var currStart = "";
@@ -49,7 +41,9 @@
                     document.getElementById(currEnd).style.background = 'blue';
                     // currIdGreen = currStart;
                     // currIdBlue = currEnd;
-                    document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                    // document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                    var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                    document.getElementById("PrintStep").innerHTML = printOut;
                 }
         })
     }
@@ -66,14 +60,23 @@
         popup.classList.toggle('show');
         document.getElementById("commentToLog").value = "";
     }
-
+    function getManifest() {
+        console.log("here");
+        document.getElementById("back").disabled = false;
+        return;
+    }
     function getMoves() {
         var start = '[' + currStart + ']';
         start = start.replace('.', ',');
         var end = '[' + currEnd + ']';
         end = end.replace('.', ',');
         var loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
-        console.log(loggedComment);
+        // console.log(loggedComment);
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('normalComment') }} ",
+            data: {"comment": loggedComment},
+        })
         if (currStep > 0){
             document.getElementById(currStart).style.background = 'white';
             document.getElementById(currEnd).style.background = 'white';
@@ -84,8 +87,11 @@
         }
         if (currStep == totalNumMoves) {
             document.getElementById("Next_Done_Button").disabled = true;
+            document.getElementById("back").disabled = true;
             document.getElementById("PrintStep").hidden = true;
+            document.getElementById("clickNext").hidden = true;
             document.getElementById("successMessage").hidden = false;
+            document.getElementById("downloadButton").hidden = false;
             return;
         }
         currStep = currStep + 1;
@@ -103,7 +109,8 @@
                     document.getElementById(currEnd).style.background = 'blue';
                     currIdGreen = currStart;
                     currIdBlue = currEnd;
-                    document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                    var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                    document.getElementById("PrintStep").innerHTML = printOut;
                 }
         })
     }
@@ -238,7 +245,7 @@
 
 <head>
     <title>Team AIAboard</title>
-    <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
+    <h1 style="text-align: center;">{{MANIFEST_NAME}}</h1>
     <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Balance</h2>
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
     <div style="position: relative; left: 75%"><button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
@@ -266,11 +273,14 @@
 
 <main>
     <div id="PrintStep">
-        Please select containers requested for unloading:
+        Please select containers requested for unloading:<br/>
+    </div>
+    <div id="clickNext">
+        After the container has been placed in the blue location, click 'Next'
     </div>
     <div id="successMessage" hidden style="top: -50px;">
-        "SUCCESSFULLY BALANCED<br/>
-        Please select the 'Back To Home' Button to confirm that all steps have been completed and the manifest to be sent to the captain.
+        SUCCESSFULLY BALANCED. To download the updated manifest to your machine's Downloads folder please select the link below.<br/>
+        After downloading the updated manifest, you can click 'Back To Home' to navigate back to the manifest upload to start the next service.
     </div>
     <span id = "buffer" style="position: relative; top: 178px;">
         <div style="position: relative; left: 23%;" id="bufferLabel">BUFFER GRID</div><br/>
@@ -502,10 +512,11 @@
     </span>
 <!-- </form> -->
     <form action="{{ url_for('navigate') }}" method="GET">
-        <span style="position: relative; top: -275px;"><button>Back To Home</button></span>
+        <span style="position: relative; top: -275px;"><button id="back">Back To Home</button></span>
     </form>
     <span style="display: inline; position: relative; text-align: center; right: -400px; top: -295px;" id="estimation">Estimated time to completion: </span>
     <span style="position: relative; right: -900px; top: -295px;"><button id="Next_Done_Button" onclick="getMoves()">Next</button></span>
+    <span style="position: relative; right: -500px; top: -295px;"><a id="downloadButton" onclick="getManifest()" href="{{ url_for('downloadManifest') }}" hidden>Download Updated Manifest</a></span>
     <!-- <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span> -->
     <!-- <div style="position: relative; right: -1050px; top: -160px;"><button>Add comment to LogFile</button></div> -->
 </main>
