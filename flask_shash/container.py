@@ -35,6 +35,8 @@ for case in range(1,6):
     manifests[case-1]['cont'] = manifests[case-1]['cont'].str.replace("UNUSED","", regex=True)
 
 manifest = manifests[0]
+tab = '  '
+logMessage = Enum('logMessage', ['FATAL', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'])
 
 manifestMatrix = []
 for col in range(0,8):
@@ -122,16 +124,6 @@ def solveBalance():
         return jsonify({"data": d})
     return("", 200)
 
-
-
-
-'''
-Function to create logfile and logfile_copy
-Function to write to logfile by user
-Function to write to logfile by us each time user hits enter
-'''
-tab = '  '
-logMessage = Enum('logMessage', ['FATAL', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'])
 
 def createLogFile():
     file1 = open("logfile.txt", 'w')        #overwrites the entire file
