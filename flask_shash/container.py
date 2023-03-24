@@ -73,6 +73,11 @@ def services():
     if request.method == 'POST':
         uploadedFile = request.files["file"]
         uploadedFile.save(secure_filename(uploadedFile.filename))
+        # backend = Back()
+        backend.unloadList = []
+        backend.loadList = []
+        backend.manifests = []
+        backend.manifest_name = uploadedFile.filename
         print("Manifest file name (" + uploadedFile.filename + ") has been uploaded")
     return render_template('choices.html', EMPLOYEE_NAME=backend.employee_name)
 
@@ -87,6 +92,13 @@ def logIn():
         print(p) #addContainerCommenttoLogFile(p)
     return ('', 204)
 
+@app.route("/addComment", methods=['POST'])
+def addComment():
+    if request.method == "POST":
+        text = request.form
+        p = text["comment"]
+        print(p) #addContainerCommenttoLogFile(p)
+    return ('', 204)
 
 
 @app.route("/printList")
@@ -99,14 +111,16 @@ def printList():
 def newContainers():
     if request.method == 'POST':
         containerName = request.form["containerName"]
-        backend.loadList.append(containerName)
+        containerWeight = request.form["containerWeight"]
+        p = [containerWeight, containerName]
+        backend.loadList.append(p)
         print(backend.loadList)
     return ('', 204)
 
 #load route
 @app.route("/load")
 def load_page():
-    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name)
+    return render_template('loadP1.html',MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=manifestMatrix)
 
 #balance route
 @app.route("/balance", methods=["POST"])
