@@ -1,10 +1,52 @@
 <!DOCTYPE html>
 <html>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
 <script>
-    function upload() {
-        document.getElementsByName("service").forEach(function(element) {
-            element.toggleAttribute("disabled");
-        });
+    function pop(id) {
+        document.getElementById('choosing').toggleAttribute('hidden');
+        // document.getElementById('loginPop').popup.classList.toggle('show');
+        if (id == "comment") {
+            var popup = document.getElementById('commentPop');
+            popup.classList.toggle('show');
+        }
+        else {
+            var popup = document.getElementById('loginPop');
+            popup.classList.toggle('show');
+        }
+    }
+
+    function login() {
+        var name = document.getElementById("loginName").value;
+        console.log(name);
+        var s = "New log in: " + name + " logged in.";
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('logIn') }} ",
+            data: {"name": name,
+                   "comment": s},
+        })
+        var printName = document.getElementById("currentEmployee");
+        printName.innerHTML = name;
+        var popup = document.getElementById('loginPop');
+        popup.classList.toggle('show');
+        document.getElementById('choosing').hidden = false;
+        document.getElementById("loginName").value = "";
+    }
+
+    function logComment() {
+        var comment = document.getElementById("commentToLog").value;
+        console.log(comment);
+        var name = document.getElementById("currentEmployee").innerHTML;
+        comment = "MANUAL COMMENT FROM USER (" + name.toUpperCase() + "): " + comment;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('addComment') }} ",
+            data: {"comment": comment},
+        })
+        var popup = document.getElementById('commentPop');
+        popup.classList.toggle('show');
+        document.getElementById("commentToLog").value = "";
+        document.getElementById('choosing').hidden = false;
     }
 </script>
 <style>
@@ -16,17 +58,58 @@
         width: 25px;
         height: 50px;
     }
+
+    .popup {
+        display: inline-block;
+    }
+    .popup .popuptext {
+        visibility: hidden;
+        position:relative;
+        width: 2500px;
+        background-color: gray;
+        color: white;
+        text-align: center;
+        border-radius: 8px;
+        padding: 20px;
+        top:100px;
+        right:250px;
+    }
+    .popup .show {
+        visibility: visible;
+        /* -webkit-animation: fadeIn 1s; */
+        animation: fadeIn 1s;
+    }
   
 </style>
 <body>
 
-<h2 style="display: inline; position: relative; left: 88%;"> User: {{ EMPLOYEE_NAME }}</h2>
-<div style="position: relative; left: 90%;"><button>Log In</button></div>
-<div style="position: relative; left: 85%;"><button>Add comment to LogFile</button></div>
+<h2 style="display: inline; position: relative; left: 85%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+<div style="position: relative; left: 90%;"><button id="logIn" onclick="pop(this.id)">Log In</button></div>
+<div style="position: relative; left: 85%;"><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
 <main>
-    <h2 style="position: relative; left: 43%;">Please select type of service:</h2>
-    <div style="display: inline; position: relative; left:49%;"><form action="{{ url_for('balance') }}" method="GET"><button name="service">Balance</button></form></div>
-    <div style="display: inline; position: relative; left:48%;"><form action="{{ url_for('home_page') }}" method="GET"><button name="service">Load/Unload</button></form></div>
+
+    <div style="position: relative; left: 40%;">
+        <div class="popup">
+            <span class="popuptext" id="loginPop" style="left: 10%; top: 100px;">
+              Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
+            </span>
+            <br/>
+            <span style="right: 30%; top: 100px;" class="popuptext" id="commentPop">
+                Enter the comment you would like to add to the log file: <input type="text" id="commentToLog"/> <button onclick="logComment()">Submit</button>
+            </span>
+        </div>
+        <div id="choosing">
+            <!-- <h2>Please upload new manifest:</h2>
+            <form action=" {{ url_for('services')}} " method="post" enctype="multipart/form-data">
+                <input style="position: relative; left: 4%;" type="file" name="file"/>
+                <div style="position: relative; left: 6%"><input type="submit"></div>
+            </form> -->
+            <h2>Please select type of service:</h2>
+            <div style="display: inline; position: relative; left:7%;"><form action="{{ url_for('home_page') }}" method="GET"><button name="service">Balance</button></form></div>
+            <!-- <div style="display: inline; position: relative; left:7%;"><form action="{{ url_for('balance') }}" method="GET"><button name="service">Balance</button></form></div> -->
+            <div style="display: inline; position: relative; left:6%;"><form action="{{ url_for('load_page') }}" method="GET"><button name="service">Load/Unload</button></form></div>
+        </div>
+    </div>
 </main>
 
 </body>
