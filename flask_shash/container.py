@@ -31,6 +31,47 @@ def getEmployee():
 def setEmployee(name):
     backend.employee_name = name
     return
+def createLogFile():
+    file1 = open("logfile.txt", 'w')        #overwrites the entire file
+    file1.close()
+    file2 = open("logfile_copy.txt", 'w')   #overwrites the entire file
+    file2.close()
+    return
+
+def addUserCommenttoLogFile(comment):
+    time = datetime.datetime.now()
+    entireMessage = str(time) + tab + logMessage.INFO.name + tab + "MANUAL COMMENT FROM " + backend.employee_name.upper() + ": \"" + comment + "\"\n"
+
+    file1 = open("logfile.txt", 'a')        #appends to the file if it does not exist
+    file1.write(entireMessage)
+    file1.close()
+
+    file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
+    file2.write(entireMessage)
+    file2.close()
+    return
+
+def addContainerCommenttoLogFile(comment):
+    time = datetime.datetime.now()
+    entireMessage = str(time) + tab + logMessage.INFO.name + tab + comment + '\n'
+
+    file1 = open("logfile.txt", 'a')        #appends to the file if it does not exist
+    file1.write(entireMessage)
+    file1.close()
+
+    file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
+    file2.write(entireMessage)
+    file2.close()
+    return
+
+def printLogFile():
+    file1 = open("logfile.txt", 'r')        #opens to read the file
+    print(file1.read())
+    return
+
+
+#logFile initialization
+createLogFile()
 
 dictOfMoves = {}
 l = [((0,1), (0,6)), ((0,2), (0,1)), ((1,0),(0,1)), ((2,1),(1,2)), ((2,10),(2,11))]
@@ -105,7 +146,9 @@ def services():
         backend.loadList = []
         backend.manifests = []
         backend.manifest_name = uploadedFile.filename
-        print("Manifest file name (" + backend.manifest_name + ") has been uploaded")
+        s = "Manifest file name (" + backend.manifest_name + ") has been uploaded"
+        addContainerCommenttoLogFile(s)
+        print(s)
         testManifest = ( pd.read_csv(str(uploadedFile.filename),header=None,names=["col","row","weight","cont"]) )
         testManifest['col'] = testManifest['col'].str.replace("\[| ","", regex=True)
         testManifest['row'] = testManifest['row'].str.replace("\]| ","", regex=True)
@@ -124,7 +167,9 @@ def logIn():
         s1 = getEmployee() + " signed out"
         setEmployee(text["name"])
         print(s1) #addContainerCommenttoLogFile(s1)
+        addContainerCommenttoLogFile(s1)
         print(p) #addContainerCommenttoLogFile(p)
+        addContainerCommenttoLogFile(p)
     return ('', 204)
 
 @app.route("/addComment", methods=['POST'])
@@ -133,6 +178,7 @@ def addComment():
         text = request.form
         p = text["comment"]
         print(p) #addContainerCommenttoLogFile(p)
+        addUserCommenttoLogFile(p)
     return ('', 204)
 
 
@@ -149,6 +195,8 @@ def newContainers():
         containerWeight = request.form["containerWeight"]
         p = [containerWeight, containerName]
         backend.loadList.append(p)
+        s = backend.employee_name.upper() + " entered container \'" + containerName + "\' with weight " + containerWeight + " for loading"
+        addContainerCommenttoLogFile(s)
         print(backend.loadList)
     return ('', 204)
 
@@ -189,7 +237,7 @@ def createMoveDict(testArray):
         backend.dictOfMoves["name " + str(i+1)] = testArray[i][0][0][3]
     return
 
-print (dictOfMoves)
+# print (dictOfMoves)
 # def solveBalance():
 #     if request.method == "POST":
 #         currStep = request.form["step"]
@@ -199,45 +247,6 @@ print (dictOfMoves)
 #         # print("HERE")
 #         return jsonify({"data": d})
 #     return("", 200)
-
-
-def createLogFile():
-    file1 = open("logfile.txt", 'w')        #overwrites the entire file
-    file1.close()
-    file2 = open("logfile_copy.txt", 'w')   #overwrites the entire file
-    file2.close()
-    return
-
-def addUserCommenttoLogFile(comment):
-    time = datetime.datetime.now()
-    entireMessage = str(time) + tab + logMessage.INFO.name + tab + "Employee wants to make a note that \"" + comment + "\"\n"
-
-    file1 = open("logfile.txt", 'a')        #appends to the file if it does not exist
-    file1.write(entireMessage)
-    file1.close()
-
-    file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
-    file2.write(entireMessage)
-    file2.close()
-    return
-
-def addContainerCommenttoLogFile(comment):
-    time = datetime.datetime.now()
-    entireMessage = str(time) + tab + logMessage.INFO.name + tab + comment + '\n'
-
-    file1 = open("logfile.txt", 'a')        #appends to the file if it does not exist
-    file1.write(entireMessage)
-    file1.close()
-
-    file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
-    file2.write(entireMessage)
-    file2.close()
-    return
-
-def printLogFile():
-    file1 = open("logfile.txt", 'r')        #opens to read the file
-    print(file1.read())
-    return
 
 
 #Allows site to be hosted by running python script

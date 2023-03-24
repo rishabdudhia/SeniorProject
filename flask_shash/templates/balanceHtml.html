@@ -53,12 +53,27 @@
                 }
         })
     }
+    function logComment() {
+        var comment = document.getElementById("commentToLog").value;
+        var name = document.getElementById("currentEmployee").innerHTML;
+        comment = "MANUAL COMMENT FROM USER (" + name.toUpperCase() + "): " + comment;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('addComment') }} ",
+            data: {"comment": comment},
+        })
+        var popup = document.getElementById('commentPop');
+        popup.classList.toggle('show');
+        document.getElementById("commentToLog").value = "";
+    }
+
     function getMoves() {
-        if (currStep == totalNumMoves) {
-            document.getElementById("Next_Done_Button").disabled = true;
-            document.getElementById("PrintStep").hidden = true;
-            document.getElementById("successMessage").hidden = false;
-        }
+        var start = '[' + currStart + ']';
+        start = start.replace('.', ',');
+        var end = '[' + currEnd + ']';
+        end = end.replace('.', ',');
+        var loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        console.log(loggedComment);
         if (currStep > 0){
             document.getElementById(currStart).style.background = 'white';
             document.getElementById(currEnd).style.background = 'white';
@@ -66,6 +81,12 @@
             document.getElementById(currEnd).innerHTML = currName;
             document.getElementById(currStart).title = "";
             document.getElementById(currEnd).title = currName;
+        }
+        if (currStep == totalNumMoves) {
+            document.getElementById("Next_Done_Button").disabled = true;
+            document.getElementById("PrintStep").hidden = true;
+            document.getElementById("successMessage").hidden = false;
+            return;
         }
         currStep = currStep + 1;
         $.ajax({
