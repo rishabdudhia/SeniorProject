@@ -249,7 +249,6 @@ def createMoveDict(testArray):
 #     return("", 200)
 
 
-
 def createManifestCopy(doc, start_line, end_line, start, end):
     copy = open("manifest_copy.txt", 'w')   #overwrites the entire file
     for i in range(len(doc)-1):
@@ -290,14 +289,12 @@ def moveContainerInManifest(step):
     end = doc[end_line]
     #print("end_row=", end_row, "  end_col=", end_col)
     end_data = end[10:]
-
     
     print("start=", start, "    end=", end)
     start = start[:10] + end_data
     end = end[:10] + start_data
     print("start=", start, "    end=", end)
     
-
     print(start_line, end_line)
     manifest = open(backend.manifest_filename,'w')
     for i in range(len(doc)-1):
@@ -317,5 +314,4 @@ def moveContainerInManifest(step):
 
 #Allows site to be hosted by running python script
 if __name__ == '__main__':
-    main()
     app.run(debug=True)
