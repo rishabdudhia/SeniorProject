@@ -6,6 +6,7 @@ from queue import PriorityQueue
 from werkzeug.utils import secure_filename
 import datetime
 from enum import Enum
+import os
 
 
 nrows=8
@@ -16,7 +17,7 @@ shipCase = 1
 class Back:
     unloadList = []
     loadList = []
-    manifest_name = "SS TEST SHIP"
+    manifest_name = ""
     employee_name = "John Doe"
     manifests = []
     readManifest = None
@@ -62,6 +63,7 @@ def addContainerCommenttoLogFile(comment):
     file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
     file2.write(entireMessage)
     file2.close()
+    print("logged comment")
     return
 
 def printLogFile():
@@ -134,6 +136,13 @@ def addContainer():
 
 @app.route("/")
 def navigate():
+    if (backend.manifest_name != ""):
+        os.remove(backend.manifest_name)
+        backend.manifest_name = ""
+    backend.unloadList = []
+    backend.loadList = []
+    backend.manifests = []
+    backend.dictOfMoves.clear()
     return render_template('homepage.html', EMPLOYEE_NAME=backend.employee_name)
 
 @app.route("/services", methods=['POST'])
@@ -142,11 +151,11 @@ def services():
         uploadedFile = request.files["file"]
         uploadedFile.save(secure_filename(uploadedFile.filename))
         # backend = Back()
-        backend.unloadList = []
-        backend.loadList = []
-        backend.manifests = []
+        # backend.unloadList = []
+        # backend.loadList = []
+        # backend.manifests = []
         backend.manifest_name = uploadedFile.filename
-        s = "Manifest file name (" + backend.manifest_name + ") has been uploaded"
+        s = "Manifest file name: (" + backend.manifest_name + ") has been uploaded"
         addContainerCommenttoLogFile(s)
         print(s)
         testManifest = ( pd.read_csv(str(uploadedFile.filename),header=None,names=["col","row","weight","cont"]) )
@@ -207,6 +216,22 @@ def newContainers():
         addContainerCommenttoLogFile(s)
         print(backend.loadList)
     return ('', 204)
+
+@app.route("/loadService", methods=["POST"])
+def loadService():
+    if request.method == "POST":
+        initialState, finalState, dupes, finals = LoadingBranch(backend.readManifest, backend.unloadList, backend.loadList)
+        createMoveDict(finalState.movesList)
+        s = request.form["step"]
+        d = {}
+        d["startPos"] = backend.dictOfMoves["start " + str(s)]
+        d["endPos"] = backend.dictOfMoves["end " + str(s)]
+        d["name"] = backend.dictOfMoves["name " + str(s)]
+        d["totalMoves"] = str(len(backend.dictOfMoves) / 3)
+        # print(d)
+        print(backend.dictOfMoves)
+        return jsonify({"data": d})
+    return("", 200)
 
 #load route
 @app.route("/load")
