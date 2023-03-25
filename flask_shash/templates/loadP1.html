@@ -14,7 +14,8 @@
     function getContainer(name) {
         if (selecting == -1) {
             var cell = document.getElementById(name)
-            if (cell.innerHTML != " NAN") {
+            if (cell.innerHTML != "NAN") {
+                if (cell.innerHTML != "")
                 cell.style.background = 'red';
                 red.push(name);
             }
@@ -40,13 +41,23 @@
             document.getElementById("Next_Done_Button").disabled = true;
             startLoadingContainers();
             document.getElementById("PrintStep").innerHTML = ""
+            document.getElementById("break").hidden = false;
             return;
         }
         var start = '[' + currStart + ']';
         start = start.replace('.', ',');
         var end = '[' + currEnd + ']';
         end = end.replace('.', ',');
-        var loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        var loggedComment = "";
+        if (currStart == "9.1") {
+            loggedComment = "Container \'" + currName + "\' loaded onto ship at position " + end;
+        }
+        else if (currEnd == "9.1") {
+            loggedComment = "Container \'" + currName + "\' unloaded from the ship from position " + start;
+        }
+        else {
+            loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        }
         // console.log(loggedComment);
         $.ajax({
             type: "POST",
@@ -146,6 +157,7 @@
     }
 
     function solve() {
+        document.getElementById("break").hidden = true;
         document.getElementById('loadPop').classList.toggle('show');
         document.getElementById("Next_Done_Button").disabled = false;
         var c;
@@ -277,13 +289,17 @@
     }
 
     function success() {
-        if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
-            document.getElementById("submitContainer").disabled = false;
+        if (document.getElementById("containerWeight").value.length == 0 || document.getElementById("containerWeight").value.length == 0) {
+            document.getElementById("submitContainer").disabled = true;
             document.getElementById("doneContainers").disabled = false;
+        }
+        else if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
+            document.getElementById("submitContainer").disabled = false;
+            document.getElementById("doneContainers").disabled = true;
         }
         else {
             document.getElementById("submitContainer").disabled = true;
-            document.getElementById("doneContainers").disabled = true;
+            document.getElementById("doneContainers").disabled = false;
         }
     }
 
@@ -331,8 +347,8 @@
 <head>
     <title>Team AIAboard</title>
     <h1 style="text-align: center;">{{MANIFEST_NAME}}</h1>
-    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
-    <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+    <h2 style="display: inline; position: relative; text-align: left; width: 100%; top: -50%;">Load/Unload</h2>
+    <h2 style="display: inline; position: relative; left: 70%; top: -50%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
     <div style="position: relative; left: 75%"><button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
     <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
     <div style="position: relative; left: 40%;">
@@ -346,7 +362,8 @@
             <span style="right: 40%; top: 40px;" class="popuptext" id="loadPop">
                 Enter the name of the container to be loaded <input type="text" id="containerName" onkeyup="success()"/> <br/>
                 Enter the weight of the container to be loaded <input type="text" id="containerWeight" onkeyup="success()"/> <br/>
-                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" disabled onclick="solve()">Done</button>
+                Selecting 'Done' before 'Submit' for the last container to be loaded will not save that container. You must select 'Submit' to save any container and 'Done' when finished inputting.<br/>
+                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" onclick="solve()">Done</button>
             </span>
             <br/>
             <span style="right: 80%; top: 100px;" class="popuptext" id="commentPop">
@@ -374,6 +391,7 @@
         SUCCESSFULLY COMPLETED LOADING AND UNLOADING.<br/>To download the updated manifest to your machine's Downloads folder please select the link below.<br/>
         After downloading the updated manifest, you can click 'Back To Home' to navigate back to the manifest upload to start the next service.
     </div>
+    <br id="break" hidden/>
     <span id = "buffer" style="position: relative; top: 50px;">
         <div style="position: relative; left: 23%;" id="bufferLabel">BUFFER GRID</div><br/>
         <table>

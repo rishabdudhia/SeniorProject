@@ -236,10 +236,13 @@ def LoadingBranch(testManifestArray, unloadIn, load):
 
     #cleanup unload data
     unloadT = []
+    unload = []
     for i in unloadIn:
         unloadT.append(np.array(testManifestArray[i[0]-comp,i[1]-comp, 3]))
     unloadT = np.array(unloadT)
-    unload = np.array(unloadT[(unloadT[:] != 'UNUSED') == (unloadT[:] != 'NAN')])
+
+    if(len(unloadT)):
+        unload = np.array(unloadT[(unloadT[:] != 'UNUSED') == (unloadT[:] != 'NAN')])
 
     #using colPick attribute of class to show previous col
         #-1 means previous cell was buffer
