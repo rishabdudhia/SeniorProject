@@ -6,6 +6,7 @@ from queue import PriorityQueue
 from werkzeug.utils import secure_filename
 import datetime
 from enum import Enum
+import os
 
 
 nrows=8
@@ -16,12 +17,13 @@ shipCase = 1
 class Back:
     unloadList = []
     loadList = []
-    manifest_name = "SS TEST SHIP"
+    manifest_name = ""
     employee_name = "John Doe"
     manifests = []
     readManifest = None
     buffer = None
     dictOfMoves = {}
+    cost = 0
     
 backend = Back()
 
@@ -31,6 +33,13 @@ def getEmployee():
 def setEmployee(name):
     backend.employee_name = name
     return
+
+def getCost():
+    return backend.cost
+def setCost(c):
+    backend.cost = c
+    return
+
 def createLogFile():
     file1 = open("logfile.txt", 'w')        #overwrites the entire file
     file1.close()
@@ -62,6 +71,7 @@ def addContainerCommenttoLogFile(comment):
     file2 = open("logfile_copy.txt", 'a')   #appends to the file if it does not exist
     file2.write(entireMessage)
     file2.close()
+    print("logged comment")
     return
 
 def printLogFile():
@@ -134,6 +144,14 @@ def addContainer():
 
 @app.route("/")
 def navigate():
+    if (backend.manifest_name != ""):
+        os.remove(backend.manifest_name)
+        backend.manifest_name = ""
+    backend.unloadList = []
+    backend.loadList = []
+    backend.manifests = []
+    setCost(0)
+    backend.dictOfMoves.clear()
     return render_template('homepage.html', EMPLOYEE_NAME=backend.employee_name)
 
 @app.route("/services", methods=['POST'])
@@ -142,11 +160,11 @@ def services():
         uploadedFile = request.files["file"]
         uploadedFile.save(secure_filename(uploadedFile.filename))
         # backend = Back()
-        backend.unloadList = []
-        backend.loadList = []
-        backend.manifests = []
+        # backend.unloadList = []
+        # backend.loadList = []
+        # backend.manifests = []
         backend.manifest_name = uploadedFile.filename
-        s = "Manifest file name (" + backend.manifest_name + ") has been uploaded"
+        s = "Manifest file name: (" + backend.manifest_name + ") has been uploaded"
         addContainerCommenttoLogFile(s)
         print(s)
         testManifest = ( pd.read_csv(str(uploadedFile.filename),header=None,names=["col","row","weight","cont"]) )
@@ -208,6 +226,23 @@ def newContainers():
         print(backend.loadList)
     return ('', 204)
 
+@app.route("/loadService", methods=["POST"])
+def loadService():
+    if request.method == "POST":
+        initialState, finalState, dupes, finals = LoadingBranch(backend.readManifest, backend.unloadList, backend.loadList)
+        createMoveDict(finalState.movesList)
+        setCost(finalState.moves)
+        s = request.form["step"]
+        d = {}
+        d["startPos"] = backend.dictOfMoves["start " + str(s)]
+        d["endPos"] = backend.dictOfMoves["end " + str(s)]
+        d["name"] = backend.dictOfMoves["name " + str(s)]
+        d["totalMoves"] = str(len(backend.dictOfMoves) / 3)
+        # print(d)
+        print(backend.dictOfMoves)
+        return jsonify({"data": d})
+    return("", 200)
+
 #load route
 @app.route("/load")
 def load_page():
@@ -218,6 +253,7 @@ def load_page():
 def balance():
     initialState, finalState, dupes, finals = branchingBalance(backend.readManifest, ncols)
     createMoveDict(finalState.movesList)
+    setCost(finalState.moves)
     # ret = backend.dictOfMoves
     print(finalState.movesList)
     return render_template("balanceHtml.html", MANIFEST_NAME=backend.manifest_name, EMPLOYEE_NAME=backend.employee_name, manifest=backend.readManifest)
@@ -231,7 +267,7 @@ def getStep():
         d["startPos"] = backend.dictOfMoves["start " + str(s)]
         d["endPos"] = backend.dictOfMoves["end " + str(s)]
         d["name"] = backend.dictOfMoves["name " + str(s)]
-        d["totalMoves"] = str(len(backend.dictOfMoves) / 3)
+        d["totalMoves"] = str(backend.cost)
         print(d)
         return jsonify({"data": d})
     return("", 200)
@@ -250,6 +286,7 @@ def createMoveDict(testArray):
         backend.dictOfMoves["start " + str(i+1)] = str(int(testArray[i][0][0][0])) +'.'+ str(int(testArray[i][0][0][1]))
         backend.dictOfMoves["end " + str(i+1)] = str(testArray[i][1][0]) + '.' + str(testArray[i][1][1])
         backend.dictOfMoves["name " + str(i+1)] = testArray[i][0][0][3]
+        backend.dictOfMoves["weight " + str(i+1)] = testArray[i][0][0][2]
     return
 
 # print (dictOfMoves)
@@ -264,7 +301,7 @@ def createMoveDict(testArray):
 #     return("", 200)
 
 
-def createManifestCopy(doc, start_line, end_line, start, end):
+def createManifestCopy(doc, start, end, start_line=-1, end_line=-1):
     copy = open("manifest_copy.txt", 'w')   #overwrites the entire file
     for i in range(len(doc)-1):
         print(i)
@@ -278,53 +315,111 @@ def createManifestCopy(doc, start_line, end_line, start, end):
     copy.close()
     return
 
-def moveContainerInManifest(step):
-    manifest = open(backend.manifest_filename,'r')
-    doc = manifest.read().split('\n')
-    manifest.close()
-    #print("doc[1] =", doc[1])
-    #print("dictOfMoves =", backend.dictOfMoves)
-    
-    start = "start " + str(step)
-    start = backend.dictOfMoves[start]     #string
-    print("start=", start)
-    start_row = int(start[0])
-    start_col = int(start[2])
-    start_line = ((start_row - 1) * 12) + (start_col - 1)
-    start = doc[start_line]                       #access to start postion in manifest
-    #print("start=", start)
-    #print("start_row=", start_row, "  start_col=", start_col)
-    start_data = start[10:]                 #save the start data
+@app.route("/changeManifest", methods=["POST"])
+def moveContainerInManifest():
+    if request.method == 'POST':
+        step = request.form["step"]
+        both = 0
+        manifest = open(backend.manifest_name,'r')
+        doc = manifest.read().split('\n')
+        manifest.close()
+        #print("doc[1] =", doc[1])
+        #print("dictOfMoves =", backend.dictOfMoves)
+        
+        start = "start " + str(step)
+        start = backend.dictOfMoves[start]     #string
+        # print("start=", start)
+        c = start.find('.')
+        start_row = int(start[:c])
+        start_col = int(start[c+1:])
 
-    end = "end " + str(step)
-    end = backend.dictOfMoves[end]
-    end_row = int(end[0])
-    end_col = int(end[2])
-    end_line = ((end_row - 1) * 12) + (end_col - 1)
-    end = doc[end_line]
-    #print("end_row=", end_row, "  end_col=", end_col)
-    end_data = end[10:]
-    
-    print("start=", start, "    end=", end)
-    start = start[:10] + end_data
-    end = end[:10] + start_data
-    print("start=", start, "    end=", end)
-    
-    print(start_line, end_line)
-    manifest = open(backend.manifest_filename,'w')
-    for i in range(len(doc)-1):
-        print(i)
-        if i == start_line:
-            manifest.write(start)
-        elif i == end_line:
-            manifest.write(end)
+        if (start == "9.1"): both = -1
         else:
-            manifest.write(doc[i])
-        manifest.write('\n')
-    manifest.close()
+            start_line = ((start_row - 1) * 12) + (start_col - 1)
+            print("start line = ",start_line)
+            start = doc[start_line]                       #access to start postion in manifest
+            #print("start=", start)
+            #print("start_row=", start_row, "  start_col=", start_col)
+        # else:
+        #     start = "[9,1], {weight}, " + backend.dictOfMoves["name " + str(step)]
+        o = start.find('{')
+        start_data = start[o:]
+        start_keep = start[:o]               #save the start data
 
-    createManifestCopy(doc, start_line, end_line, start, end)
-    return
+        end = "end " + str(step)
+        end = backend.dictOfMoves[end]
+        c = end.find('.')
+        end_row = int(end[:c])
+        end_col = int(end[c+1:])
+        if (end == "9.1"): both = 1
+        else:
+            end_line = ((end_row - 1) * 12) + (end_col - 1)
+            end = doc[end_line]
+        #print("end_row=", end_row, "  end_col=", end_col)
+        o = end.find('{')
+        end_data = end[o:]  
+        end_keep = end[:o] 
+        # end_data = end[10:]
+        weight = backend.dictOfMoves["weight " + str(step)]
+        weight = str(weight)
+        print(weight)
+        while len(weight) != 5:
+            weight = '0' + weight
+        if both == 0:
+            print("start=", start, "    end=", end)
+            start = start_keep + end_data
+            end = end_keep + start_data #backend.dictOfMoves["name " + str(step)]
+            print("start=", start, "    end=", end)
+            print(backend.dictOfMoves)
+            
+            print(start_line, end_line)
+            manifest = open(backend.manifest_name,'w')
+            for i in range(len(doc)-1):
+                print(i)
+                if i == start_line:
+                    manifest.write(start)
+                elif i == end_line:
+                    manifest.write(end)
+                else:
+                    manifest.write(doc[i])
+                manifest.write('\n')
+                createManifestCopy(doc, start, end, start_line, end_line)
+        elif both < 0:
+            print("start=", start, "    end=", end)
+            start = "Not Needed"
+            end = end_keep + "{" + weight + "}, " + backend.dictOfMoves["name " + str(step)]
+            print("start=", start, "    end=", end)
+            print(backend.dictOfMoves)
+            
+            print(end_line)
+            manifest = open(backend.manifest_name,'w')
+            for i in range(len(doc)-1):
+                print(i)
+                if i == end_line:
+                    manifest.write(end)
+                else:
+                    manifest.write(doc[i])
+                manifest.write('\n')
+                createManifestCopy(doc, start, end, end_line)
+        elif both > 0:
+            print("start=", start, "    end=", end)
+            start = start_keep + "{00000}, UNUSED" #+ backend.dictOfMoves["name " + str(step)]
+            end = "Not Needed"
+            print("start=", start, "    end=", end)
+            print(backend.dictOfMoves)
+            
+            print(start_line)
+            manifest = open(backend.manifest_name,'w')
+            for i in range(len(doc)-1):
+                print(i)
+                if i == start_line:
+                    manifest.write(start)
+                else:
+                    manifest.write(doc[i])
+                manifest.write('\n')
+                createManifestCopy(doc, start, end, start_line)
+        manifest.close()
+    return ('', 204)
 
 
 #Allows site to be hosted by running python script

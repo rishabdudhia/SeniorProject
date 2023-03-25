@@ -49,23 +49,27 @@ class State:
 
 
 #decorator clas for use with branching
+#decorator clas for use with branching
+#decorator clas for use with branching
 class StateWrapper:
-    def __init__(self, state, colPick=-1, h=20, moves = 0, cost=0, movesList = []):
+    def __init__(self, state, colPick=-1, h=40, moves = 0, cost=0, movesList = [], load=[], unload=[], status=0):
         self.state = state
         self.colPick = colPick
         self.h = h
         self.moves = moves
         self.cost = cost
-            #of the form [(x1,y1), (x2,y2)]
-        self.movesList = movesList
+        self.movesList = movesList #of the form [(x1,y1), (x2,y2)]
+        self.load = load
+        self.unload = unload
+        self.status = status
 
     def __str__(self):
         printState(self.state.ship)
         t=""
         if self.colPick>0:
-            t=f"Pick Col: {self.colPick}"
-        return t+f"\n\nh: {self.h}\n# of Moves: {self.moves}\nCost: {self.cost}\nMovesList: {self.movesList}"
-
+            t=f"\n\nPick Col: {self.colPick}"
+        return t+f"\nh: {self.h}\n# of Moves: {self.moves}\nCost: {self.cost}\nMovesList: {self.movesList}\nload{self.load}\nunload{self.unload}"
+    
 def stackHeight(array, col, nrows=nrows):
     for row in range(nrows-1,-1,-1):
         if(array[row,col,3] != "UNUSED"):
@@ -85,11 +89,16 @@ def updateTop(array, cols=ncols):
     for i in range(0,cols):
         h = stackHeight(array,i)
         if(h!=-1):
-            top.append( np.append(array[h,i,2:4],h) )
+#             top.append( np.append(array[h,i,2:4],h) )
+            top.append( (array[h,i]) )
         else:
-            top.append(np.array(['-99999','NONAME',h]))
+#             top.append(np.array(['-99999','NONAME',h]))
+            top.append(np.array(['00','00','-99999','NONAME']))
     return np.array(top)
 
+def removeEmpty(array, pos = 3):
+    filterArray = ((array[:,:,pos] != 'UNUSED') == (array[:,:,pos] != 'NAN'))
+    return (array[filterArray])
 
 def pickable(array, col, nrows=nrows):
     h = stackHeight(array,col,nrows)
@@ -98,25 +107,28 @@ def pickable(array, col, nrows=nrows):
     return True
 
 
-def moveContainer(array, col, newCol):
-    if(col==newCol):
-        return -1
+def moveContainer(array, col, newCol, unload=0):
+    # if(col==newCol):
+    #     return -1
     #find where to place container
     h1 = stackHeight(array,col)
     h2 = stackHeight(array,newCol) +1 
         
     newArray = array.copy()
-    newArray[h2,newCol,2:4] = newArray[h1,col,2:4]  
+    if(unload == 0):
+        newArray[h2,newCol,2:4] = newArray[h1,col,2:4]  
     newArray[h1,col,2:4] = ['00000','UNUSED']
     
     return newArray
 
 
-def costCol(array, curCol, newCol, empty=0):
+def costCol(array, curCol, newCol, empty=0, h1=-1, h2=-1):
     hs = heights(array)    
     
-    h1 = hs[curCol]
-    h2 = hs[newCol]
+    if(h1<0):
+        h1 = hs[curCol]
+    if(h2<0):
+        h2 = hs[newCol]
     
     #check if there exists in between area
     localMax=h2
@@ -128,6 +140,260 @@ def costCol(array, curCol, newCol, empty=0):
     else:
         return abs(localMax-h1) + abs(curCol-newCol) + abs(localMax-h2)
     
+
+#-----------------------------------------------
+#---------------LOAD/UNLOAD---------------------
+#-----------------------------------------------
+
+def unloadTop(state, unload, cols=ncols):
+    #Shows us cols of states to pick from which have exposed unload container
+    top = np.array((updateTop(state.state.ship, cols=cols)))
+    
+    filterTop = top[((top[:,3] != 'NONAME') == (top[:,3] != 'NAN'))]
+#     print(filterTop)
+    
+    unloadable = []
+    for i in filterTop:
+        for w in unload:
+            if(i[3]==w):
+                unloadable.append(int(i[1])-1)
+    
+    return unloadable
+
+def countUnload(state, cols=ncols):
+    array = (state.state.ship)
+    unload = state.unload
+    unloadable=[]
+    for i in range(cols):
+        num = 0
+        for w in range(len(array[:,0])):
+            if (array[w,i,3] in unload):
+                num+=1
+        unloadable.append(num)
+    
+    return np.array(unloadable)
+    
+
+#find nearest col to load from left
+def nearestLoad(unloadable, col=0):
+    #expecting np.array
+    left = right = col
+
+    while( left >=0 or right < len(unloadable)):
+        if(left >=0 and unloadable[left]==0):
+            return left
+        left-=1
+        if(right < len(unloadable) and unloadable[right]==0):
+            return right
+        right+=1
+    return -1
+
+#distance to pink block (to ship/buffer)
+def distToPink(row,col):
+    return (nrows-row)+(col)
+
+#create container at location
+def createContainer(array, col, container):
+    h = stackHeight(array,col)
+    tmp = array.copy()
+    tmp[h+1,col,2:4] = container
+    return tmp
+
+def loadHeuristic(state):
+    load = state.load
+    unload = state.unload
+    return len(load)+len(unload)
+
+def LoadingBranch(testManifestArray, unloadIn, load):
+
+    # unloadIn = []
+    # load = []
+
+    #tracking how many duplicate states
+    old=100
+
+    #cost of going to truck
+    costBetweenPink = 2
+
+    #duplicate states checker
+    duplicateState = []
+
+    #legal final states
+    finalState = []
+
+    #Create PriorityQueue for queing states
+    queueMain = PriorityQueue()
+
+                
+    depth = 0
+    minCost = 10000
+
+
+
+    #when tracking moves, compensate coordinates +1 for dropoff location to match pick up
+    #**coordinates start at 1, not 0**
+    comp = 1
+
+    #cleanup unload data
+    unloadT = []
+    unload = []
+    for i in unloadIn:
+        unloadT.append(np.array(testManifestArray[i[0]-comp,i[1]-comp, 3]))
+    unloadT = np.array(unloadT)
+
+    if(len(unloadT)):
+        unload = np.array(unloadT[(unloadT[:] != 'UNUSED') == (unloadT[:] != 'NAN')])
+
+    #using colPick attribute of class to show previous col
+        #-1 means previous cell was buffer
+
+    #initial state:
+    initialState = StateWrapper(State(testManifestArray),h=0,load=load,unload=unload, colPick=-1)
+    queueMain.put(PrioritizedItem(1, 1, initialState))
+
+    while not queueMain.empty():
+        currentState=queueMain.get().item
+    #     if(len(currentState.load)==0 and len(currentState.unload)==0):
+    #             print("no more states")    
+    #             break
+        
+        #At Each state we have 3 choices
+            #unload available container                           (high priority)
+            #load container from truck                            (high priority if crane empty)
+            #move container on ship from on place to another      (low priority, only do if cant do prev 2)
+        
+        #first always attempt to unload container
+        
+        #first we find cols where there is a container we can pick right away
+        unloadable = unloadTop(currentState, currentState.unload, cols=ncols)
+        
+        #we can branch here by choosing to pick each one and calculating h()
+        if(len(unloadable)>0):
+            
+            ind=0
+            for i in range(len(unloadable)):
+                #unload item
+                # if len(currentState.unload) > i:
+                removedShip = moveContainer(array=currentState.state.ship,col=unloadable[i],newCol=0,unload=1)
+                    #find row removed from to calc h
+                removedRow = stackHeight(currentState.state.ship,col=unloadable[i])
+                    #create new unloadlist
+                removedUnload = np.delete(currentState.unload,i)
+                    
+                extraCost= 2*(costBetweenPink)
+                if(currentState.colPick==-1):
+                    extraCost = distToPink(removedRow,unloadable[i]) + 2*(costBetweenPink)
+                else:
+                    extraCost = costCol(currentState.state.ship, curCol=currentState.colPick, newCol=unloadable[i], empty=1)
+                    
+                newRemovedState = StateWrapper(State(removedShip),cost=extraCost + currentState.cost + distToPink(removedRow,unloadable[i]),movesList=currentState.movesList.copy(), load=currentState.load, unload=removedUnload, colPick=-1, moves=currentState.moves+1, status=0)
+                newRemovedState.h = loadHeuristic(newRemovedState)
+                newRemovedState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=unloadable[i]), unloadable[i]].tolist()],[9,1], newRemovedState.status])
+
+                    
+                    
+                if(len(newRemovedState.load)==0 and len(newRemovedState.unload)==0):
+                    # print("cost was", newRemovedState.cost)
+                    newRemovedState.cost += costBetweenPink
+                    # print("cost is", newRemovedState.cost)
+                    if(minCost >= newRemovedState.cost) :
+                        minCost=newRemovedState.cost
+                        print("[FINAL]New Min Cost:", minCost)
+                        finalState.append(newRemovedState)
+                
+                elif((newRemovedState.state not in duplicateState) and newRemovedState.cost < minCost):
+                    duplicateState.append(newRemovedState)
+                    queueMain.put(PrioritizedItem(newRemovedState.h,newRemovedState.cost, newRemovedState))
+                    
+                # ind +=1
+    #     else:
+    #         print("Nothing available to UNLOAD")
+        
+        #shows which cols have unloadable
+        cntUnload = countUnload(currentState)
+        
+        if(len(currentState.load)>0):
+            #starting point is pink
+            #we do not care which is loaded first so we can just pop off
+            
+            #we should try loading into cheaper col without something to be unloaded from
+            
+            
+            
+            
+            for i in range(ncols):
+                if(cntUnload[i]==0 and stackHeight(currentState.state.ship, i) < 7):
+                    
+                    loadedShip = createContainer(currentState.state.ship,col=i, container=currentState.load[0])
+    #                 print("converting \t", currentState.load)
+                    removedLoad = currentState.load[1:]
+    #                 print("to \t", removedLoad)
+                    removedRow = stackHeight(currentState.state.ship,col=i)+1
+            
+                    extraCost=2*(costBetweenPink)
+                    if(currentState.colPick==-1):
+                        extraCost = 2*(costBetweenPink)
+                    else:
+                        extraCost = distToPink(removedRow,i)
+                                    
+                    newLoadState = StateWrapper(State(loadedShip), cost=extraCost + currentState.cost + distToPink(removedRow,i),movesList=currentState.movesList.copy(), load=removedLoad, unload=currentState.unload, colPick=i, moves=currentState.moves+1, status=1)
+                    newLoadState.h = loadHeuristic(newLoadState)
+                    newLoadState.movesList.append([[np.append(['09','01'], currentState.load[0])],[stackHeight(newLoadState.state.ship,col=i)+comp,i+comp], newLoadState.status])
+                
+                    if(len(newLoadState.load)==0 and len(newLoadState.unload)==0):
+                        if(minCost >= newLoadState.cost) :
+                            minCost=newLoadState.cost
+                            print("[FINAL]New Min Cost:", minCost)
+                            finalState.append(newLoadState)
+
+                    elif((newLoadState.state not in duplicateState) and newLoadState.cost < minCost):
+                        duplicateState.append(newLoadState)
+                        queueMain.put(PrioritizedItem(newLoadState.h,newLoadState.cost, newLoadState))
+
+    #     else:
+    #         print("Nothing available to LOAD")
+            
+        if(len(unloadable)<=0):
+            #try picking from col that has unload
+            
+            for i in range(ncols):
+                if(cntUnload[i]!=0):
+                    movedCol = nearestLoad(countUnload(currentState),i)
+                    
+                    movedShip = moveContainer(currentState.state.ship,col=i,newCol= movedCol)
+                    movedCost = costCol(currentState.state.ship,curCol=i, newCol=movedCol)
+                    
+                    extraCost=2*(costBetweenPink)
+                    if(currentState.colPick==-1 and len(currentState.movesList) > 0):
+                        extraCost = distToPink(currentState.movesList[-1][1][0]-1,i) + 2*(costBetweenPink)
+                    else:
+                        if(currentState.colPick != -1):
+                            extraCost = distToPink(stackHeight(currentState.state.ship, col=i),i) + 2*(costBetweenPink)
+                        else:
+                            extraCost = costCol(currentState.state.ship, curCol=currentState.colPick, newCol=i, empty=1)
+                        
+                    newMoveState = StateWrapper(State(movedShip), cost=extraCost + currentState.cost + movedCost ,movesList=currentState.movesList.copy(), load=currentState.load, unload=currentState.unload, colPick=movedCol, moves=currentState.moves+1, status=2)
+                    newMoveState.h = loadHeuristic(newMoveState)
+                    newMoveState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=i), i].tolist()],[stackHeight(newMoveState.state.ship,col=movedCol)+comp,movedCol+comp], newMoveState.status])
+                    
+                    if((newMoveState.state not in duplicateState) and newMoveState.cost < minCost):
+                        duplicateState.append(newMoveState)
+                        queueMain.put(PrioritizedItem(newMoveState.h,newMoveState.cost, newMoveState))
+
+    #         #Stopping conditions
+
+        depth+=1
+        if((( depth>=1000 or len(finalState)>40) and len(finalState)!=0) or (queueMain.empty() and len(duplicateState)==old )):
+            print("Exited at depth",depth, " and ", len(finalState), "final states", old,"=?",len(duplicateState))
+            if(queueMain.empty()):
+                print("No More states to branch from!")
+            break
+        else:
+            old = len(duplicateState)
+
+    best = sorted(finalState,key=lambda x: x.cost)[0]
+
+    return initialState, best, duplicateState, finalState
 
 #Function for testing balance
 def balanceScore(array, cols=ncols):
@@ -523,3 +789,5 @@ def branchingBalance(testManifestArray,ncols=ncols):
     best = sorted(finalState,key=lambda x: x.cost)[0]
         
     return initialState, best, duplicateState, finalState
+
+

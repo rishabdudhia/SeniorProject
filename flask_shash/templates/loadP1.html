@@ -6,40 +6,155 @@
 <script>
     var selecting = -1;
     var red = []
+    var currStep = 0;
+    var totalNumMoves = 0;
+    var currStart = "";
+    var currEnd = "";
+    var currName = "";
     function getContainer(name) {
         if (selecting == -1) {
             var cell = document.getElementById(name)
-            if (cell.innerHTML != " NAN") {
+            if (cell.innerHTML != "NAN") {
+                if (cell.innerHTML != "")
                 cell.style.background = 'red';
                 red.push(name);
+
+                var r = parseInt(name[0]); // - 1;
+                var c = name[2];
+                if (name.length == 4) {
+                    c = c + name[3];
+                }
+                c = parseInt(c); // - 1;
+                $.ajax({
+                    type: "POST",
+                    url: " {{ url_for('addContainer') }} ",
+                    data: {"row": r,
+                        "col": c},
+                })
             }
-            
-            var r = parseInt(name[0]); // - 1;
-            var c = name[2];
-            if (name.length == 4) {
-                c = c + name[3];
-            }
-            c = parseInt(c); // - 1;
-            $.ajax({
-                type: "POST",
-                url: " {{ url_for('addContainer') }} ",
-                data: {"row": r,
-                    "col": c},
-            })
         }
     }
-
+    var calculate = false;
     function print() {
         if (selecting < 0) {
             document.getElementById("Next_Done_Button").innerHTML = "Next";
             document.getElementById("Next_Done_Button").disabled = true;
             startLoadingContainers();
-            document.getElementById("instructions").innerHTML = ""
+            document.getElementById("PrintStep").innerHTML = ""
+            document.getElementById("break").hidden = false;
             return;
         }
-        
+        var start = '[' + currStart + ']';
+        start = start.replace('.', ',');
+        var end = '[' + currEnd + ']';
+        end = end.replace('.', ',');
+        var loggedComment = "";
+        if (currStart == "9.1") {
+            loggedComment = "Container \'" + currName + "\' loaded onto ship at position " + end;
+        }
+        else if (currEnd == "9.1") {
+            loggedComment = "Container \'" + currName + "\' unloaded from the ship from position " + start;
+        }
+        else {
+            loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        }
+        // console.log(loggedComment);
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('normalComment') }} ",
+            data: {"comment": loggedComment},
+        })
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('moveContainerInManifest') }}",
+            data: {"step": currStep},
+        })
+        if (currStep > 0){
+            if (currStart == "9.1") {
+                // document.getElementById(currStart).style.background = 'white';
+                document.getElementById(currEnd).style.background = 'white';
+                // document.getElementById(currStart).innerHTML = "";
+                document.getElementById(currEnd).innerHTML = currName;
+                // document.getElementById(currStart).title = "";
+                document.getElementById(currEnd).title = currName;
+            }
+            else if (currEnd == "9.1") {
+                document.getElementById(currStart).style.background = 'white';
+                // document.getElementById(currEnd).style.background = 'white';
+                document.getElementById(currStart).innerHTML = "";
+                // document.getElementById(currEnd).innerHTML = currName;
+                document.getElementById(currStart).title = "";
+                // document.getElementById(currEnd).title = currName;
+            }
+            else {
+                document.getElementById(currStart).style.background = 'white';
+                document.getElementById(currEnd).style.background = 'white';
+                document.getElementById(currStart).innerHTML = "";
+                document.getElementById(currEnd).innerHTML = currName;
+                document.getElementById(currStart).title = "";
+                document.getElementById(currEnd).title = currName;
+            }
+        }
+        console.log(currStep)
+        console.log(totalNumMoves)
+        console.log(currStep == totalNumMoves)
+        if (parseInt(currStep) >= parseInt(totalNumMoves)) {
+            console.log("HERE")
+            
+            document.getElementById("Next_Done_Button").disabled = true;
+            document.getElementById("back").disabled = true;
+            document.getElementById("PrintStep").hidden = true;
+            document.getElementById("clickNext").hidden = true;
+            document.getElementById("successMessage").hidden = false;
+            document.getElementById("downloadButton").hidden = false;
+            return;
+        }
+        currStep = currStep + 1;
+        $.ajax({
+                type: "POST",
+                url: " {{ url_for('getStep') }} ",
+                data: {"step": currStep},
+                success: function(response) {
+                    // console.log(response);
+                    currStart = response.data["startPos"];
+                    currEnd = response.data['endPos'];
+                    currName = response.data['name'];
+                    console.log("currStart: " + currStart);
+                    console.log("currEnd: " + currEnd);
+                    console.log("currEnd: " + currEnd)
+                    if (currStart == "9.1") {
+                        // document.getElementById(currStart).style.background = 'green';
+                        document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        var printOut = "Please collect container, " + currName + ", from the truck loading area and place it at the blue position, [" + currEnd.replace('.',',') + "].<br/>The truck collecting " + currName + " is on its way to the loading area.";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                    }
+                    else if (currEnd == "9.1") {
+                        document.getElementById(currStart).style.background = 'green';
+                        // document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the truck loading area.<br/>The truck collecting " + currName + " is on its way to the loading area.";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                    }
+                    else {
+                        document.getElementById(currStart).style.background = 'green';
+                        document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                    }
+                }
+        })
+        console.log(currStep);
     }
-
+    function getManifest() {
+        console.log("here");
+        document.getElementById("back").disabled = false;
+        return;
+    }
     function pop(id) {
         if (id == "comment") {
             var popup = document.getElementById('commentPop');
@@ -49,6 +164,64 @@
             var popup = document.getElementById('loginPop');
             popup.classList.toggle('show');
         }
+    }
+
+    function solve() {
+        document.getElementById("break").hidden = true;
+        document.getElementById('loadPop').classList.toggle('show');
+        document.getElementById("Next_Done_Button").disabled = false;
+        var c;
+        for (var n = 0; n < red.length; ++n) {
+        c = document.getElementById(red[n]);
+            c.style.background = 'white';
+        }
+        red = [];
+        selecting = selecting + 1;
+        currStep = currStep + 1;
+        $.ajax({
+                type: "POST",
+                url: " {{ url_for('loadService') }} ",
+                data: {"step": currStep},
+                success: function(response) {
+                    console.log(response);
+                    currStart = response.data["startPos"];
+                    currEnd = response.data['endPos'];
+                    currName = response.data['name'];
+                    totalNumMoves = parseInt(response.data['totalMoves'])
+                    document.getElementById("estimatedTime").innerHTML = parseInt(totalNumMoves);
+                    console.log("currStart: " + currStart);
+                    if (currStart == "9.1") {
+                        // document.getElementById(currStart).style.background = 'green';
+                        document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        // document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                        var printOut = "Please collect container, " + currName + ", from the truck loading area and place it at the blue position, [" + currEnd.replace('.',',') + "].<br/>The truck collecting " + currName + " is on its way to the loading area.";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                        document.getElementById("clickNext").hidden = false;
+                    }
+                    else if (currEnd == "9.1") {
+                        document.getElementById(currStart).style.background = 'green';
+                        // document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        // document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                        var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the truck loading area.<br/>The truck collecting " + currName + " is on its way to the loading area.";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                        document.getElementById("clickNext").hidden = false;
+                    }
+                    else {
+                        document.getElementById(currStart).style.background = 'green';
+                        document.getElementById(currEnd).style.background = 'blue';
+                        // currIdGreen = currStart;
+                        // currIdBlue = currEnd;
+                        // document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                        var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                        document.getElementById("PrintStep").innerHTML = printOut;
+                        document.getElementById("clickNext").hidden = false;
+                    }
+                }
+        })
     }
 
     function startLoadingContainers() {
@@ -101,8 +274,11 @@
         for (var r = 0, n = t.rows.length; r < n; r++) {
             for (var c = 0, m = t.rows[r].cells.length; c < m; c++) {
                 cell = t.rows[r].cells[c];
-                if (cell.innerHTML == " ") cell.style.background = 'white';
-                else if (cell.innerHTML == " NAN") cell.style.background = 'black';
+                if (cell.innerHTML == "UNUSED") {
+                    cell.style.background = 'white';
+                    cell.innerHTML = ""
+                }
+                else if (cell.innerHTML == "NAN") cell.style.background = 'black';
             }
         }
     }
@@ -119,17 +295,21 @@
         document.getElementById("containerName").value = "";
         document.getElementById("containerWeight").value = "";
         document.getElementById("submitContainer").disabled = true;
-        // document.getElementById("doneContainers").disabled = true;
+        document.getElementById("doneContainers").disabled = false;
     }
 
     function success() {
-        if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
-            document.getElementById("submitContainer").disabled = false;
+        if (document.getElementById("containerWeight").value.length == 0 || document.getElementById("containerWeight").value.length == 0) {
+            document.getElementById("submitContainer").disabled = true;
             document.getElementById("doneContainers").disabled = false;
+        }
+        else if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
+            document.getElementById("submitContainer").disabled = false;
+            document.getElementById("doneContainers").disabled = true;
         }
         else {
             document.getElementById("submitContainer").disabled = true;
-            document.getElementById("doneContainers").disabled = true;
+            document.getElementById("doneContainers").disabled = false;
         }
     }
 
@@ -176,12 +356,13 @@
 
 <head>
     <title>Team AIAboard</title>
-    <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
-    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
-    <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+    <h1 style="text-align: center;">{{MANIFEST_NAME}}</h1>
+    <h2 style="display: inline; position: relative; text-align: left; width: 100%; top: -50%;">Load/Unload</h2>
+    <h2 style="display: inline; position: relative; left: 70%; top: -50%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+    <div style="position: relative; left: 75%"><button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
     <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
     <div style="position: relative; left: 40%;">
-        <button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button>
+        <!-- <button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button> -->
         <!-- <button onclick="startLoadingContainers()">Load Containers</button> -->
         <div class="popup">
             <span class="popuptext" id="loginPop">
@@ -191,7 +372,8 @@
             <span style="right: 40%; top: 40px;" class="popuptext" id="loadPop">
                 Enter the name of the container to be loaded <input type="text" id="containerName" onkeyup="success()"/> <br/>
                 Enter the weight of the container to be loaded <input type="text" id="containerWeight" onkeyup="success()"/> <br/>
-                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" disabled onclick="startLoadingContainers()">Done</button>
+                Selecting 'Done' before 'Submit' for the last container to be loaded will not save that container. You must select 'Submit' to save any container and 'Done' when finished inputting.<br/>
+                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" onclick="solve()">Done</button>
             </span>
             <br/>
             <span style="right: 80%; top: 100px;" class="popuptext" id="commentPop">
@@ -207,10 +389,19 @@
 
 
 <main>
-    <div id="instructions">
+    <div style="position: relative; top: -100px;" id="PrintStep">
         Please select containers requested for unloading from SHIP GRID: <br/>
-        Press "Done" below the grid when done selecting containers 
+        Press "Done" below the grid when done selecting containers
     </div>
+    <div style="position: relative; top: -100px;" id="clickNext" hidden>
+        <!-- After the container has been placed in the blue location, click 'Next' -->
+        To confirm that the container has been physically moved, click 'Next'
+    </div>
+    <div style="position: relative; top: -100px;" id="successMessage" hidden style="top: -50px;">
+        SUCCESSFULLY COMPLETED LOADING AND UNLOADING.<br/>To download the updated manifest to your machine's Downloads folder please select the link below.<br/>
+        After downloading the updated manifest, you can click 'Back To Home' to navigate back to the manifest upload to start the next service.
+    </div>
+    <br id="break" hidden/>
     <span id = "buffer" style="position: relative; top: 50px;">
         <div style="position: relative; left: 23%;" id="bufferLabel">BUFFER GRID</div><br/>
         <table>
@@ -322,7 +513,7 @@
         </table>
     </span>
     <!-- <form action="{{ url_for('printList') }}" method="post"> -->
-    <span name="ship" style="position: relative; top: -285px; left: 900px;">
+    <span name="ship" style="position: relative; top: -405px; left: 900px;">
         <div style="position: relative; left: 11%;" id="bufferLabel">SHIP GRID</div><br/>
         <table id="shipGrid" style="table-layout: fixed;">
             <tr>
@@ -441,10 +632,11 @@
     </span>
 <!-- </form> -->
     <form action="{{ url_for('navigate') }}" method="GET">
-        <span style="position: relative; top: -400px;"><button>Back To Home</button></span>
+        <span style="position: relative; top: -400px;"><button id="back">Back To Home</button></span>
     </form>
-    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -420px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
-    <span style="position: relative; right: -870px; top: -415px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
+    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -420px;">Estimated time to completion: <span id="estimatedTime">{{time}}</span></span>
+    <span style="position: relative; right: -770px; top: -415px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
+    <span style="position: relative; right: -400px; top: -415px;"><a id="downloadButton" onclick="getManifest()" href="{{ url_for('downloadManifest') }}" hidden>Download Updated Manifest</a></span>
     <!-- <span style="position: relative; right: -920px; top: -315px;"><button onclick="print()">Next</button></span> -->
     <!-- <div style="position: relative; right: -1050px; top: -280px;"><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div> -->
     <!-- <div id="list"></div> -->
