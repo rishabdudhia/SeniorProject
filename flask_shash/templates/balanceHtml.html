@@ -4,41 +4,157 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
 <script>
-    var selecting = -1;
-    var red = []
-    function getContainer(name) {
-        if (selecting == -1) {
-            var cell = document.getElementById(name)
-            if (cell.innerHTML != " NAN") {
-                cell.style.background = 'red';
-                red.push(name);
+    var currStep = 0;
+    var totalNumMoves = 0;
+    var currStart = "";
+    var currEnd = "";
+    var currName = "";
+    function initial() {
+        // document.getElementById("7.1").innerHTML = "hadljfhalksjf halksjdhflkasjdhflkasjdhflkashjflaksjhflkasjfhlsadkfh"
+        // document.getElementById("7.1").title = "CHANGED";
+        var t = document.getElementById("shipGrid");
+        var cell;
+        for (var r = 0, n = t.rows.length; r < n; r++) {
+            for (var c = 0, m = t.rows[r].cells.length; c < m; c++) {
+                cell = t.rows[r].cells[c];
+                if (cell.innerHTML == "UNUSED") {
+                    cell.style.background = 'white';
+                    cell.innerHTML = ""
+                }
+                else if (cell.innerHTML == "NAN") cell.style.background = 'black';
             }
-            
-            var r = parseInt(name[0]); // - 1;
-            var c = name[2];
-            if (name.length == 4) {
-                c = c + name[3];
-            }
-            c = parseInt(c); // - 1;
-            $.ajax({
-                type: "POST",
-                url: " {{ url_for('addContainer') }} ",
-                data: {"row": r,
-                    "col": c},
-            })
         }
+        currStep = currStep + 1;
+        $.ajax({
+                type: "POST",
+                url: " {{ url_for('getStep') }} ",
+                data: {"step": currStep},
+                success: function(response) {
+                    // console.log(response);
+                    currStart = response.data["startPos"];
+                    currEnd = response.data['endPos'];
+                    currName = response.data['name'];
+                    totalNumMoves = response.data['totalMoves']
+                    document.getElementById("estimation").innerHTML = "Estimated time to completion: " + totalNumMoves;
+                    console.log(currStart);
+                    document.getElementById(currStart).style.background = 'green';
+                    document.getElementById(currEnd).style.background = 'blue';
+                    // currIdGreen = currStart;
+                    // currIdBlue = currEnd;
+                    // document.getElementById("PrintStep").innerHTML = "Please move container, " + currName + ", from the green position to the blue position"
+                    var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                    document.getElementById("PrintStep").innerHTML = printOut;
+                }
+        })
     }
-
-    function print() {
-        if (selecting < 0) {
-            document.getElementById("Next_Done_Button").innerHTML = "Next";
+    function logComment() {
+        var comment = document.getElementById("commentToLog").value;
+        var name = document.getElementById("currentEmployee").innerHTML;
+        comment = "MANUAL COMMENT FROM USER (" + name.toUpperCase() + "): " + comment;
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('addComment') }} ",
+            data: {"comment": comment},
+        })
+        var popup = document.getElementById('commentPop');
+        popup.classList.toggle('show');
+        document.getElementById("commentToLog").value = "";
+    }
+    function getManifest() {
+        console.log("here");
+        document.getElementById("back").disabled = false;
+        return;
+    }
+    function getMoves() {
+        var start = '[' + currStart + ']';
+        start = start.replace('.', ',');
+        var end = '[' + currEnd + ']';
+        end = end.replace('.', ',');
+        var loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        // console.log(loggedComment);
+        $.ajax({
+            type: "POST",
+            url: " {{ url_for('normalComment') }} ",
+            data: {"comment": loggedComment},
+        })
+        if (currStep > 0){
+            document.getElementById(currStart).style.background = 'white';
+            document.getElementById(currEnd).style.background = 'white';
+            document.getElementById(currStart).innerHTML = "";
+            document.getElementById(currEnd).innerHTML = currName;
+            document.getElementById(currStart).title = "";
+            document.getElementById(currEnd).title = currName;
+        }
+        if (currStep == totalNumMoves) {
             document.getElementById("Next_Done_Button").disabled = true;
-            startLoadingContainers();
-            document.getElementById("instructions").innerHTML = ""
+            document.getElementById("back").disabled = true;
+            document.getElementById("PrintStep").hidden = true;
+            document.getElementById("clickNext").hidden = true;
+            document.getElementById("successMessage").hidden = false;
+            document.getElementById("downloadButton").hidden = false;
             return;
         }
-        
+        currStep = currStep + 1;
+        $.ajax({
+                type: "POST",
+                url: " {{ url_for('getStep') }} ",
+                data: {"step": currStep},
+                success: function(response) {
+                    // console.log(response);
+                    currStart = response.data["startPos"];
+                    currEnd = response.data['endPos'];
+                    currName = response.data['name'];
+                    console.log(currStart);
+                    document.getElementById(currStart).style.background = 'green';
+                    document.getElementById(currEnd).style.background = 'blue';
+                    currIdGreen = currStart;
+                    currIdBlue = currEnd;
+                    var printOut = "Please move container, " + currName + ", from the green position, [" + currStart.replace('.',',') + "], to the blue position, [" + currEnd.replace('.',',') + "].";
+                    document.getElementById("PrintStep").innerHTML = printOut;
+                }
+        })
     }
+    // function getContainer(name) {
+    //     // console.log(name);
+    //     // $('table').on('click', 'td', function() {
+    //     //     $(this).css('backgroundColor', 'red');
+    //     // });
+    //     if (selecting == true) {
+    //         var cell = document.getElementById(name)
+    //         cell.style.background = 'red';
+    //         var r = parseInt(name[0]); // - 1;
+    //         var c = name[2];
+    //         if (name.length == 4) {
+    //             c = c + name[3];
+    //         }
+    //         c = parseInt(c); // - 1;
+    //         $.ajax({
+    //             type: "POST",
+    //             url: " {{ url_for('addContainer') }} ",
+    //             data: {"row": r,
+    //                 "col": c},
+    //         })
+    //     }
+    // }
+
+    // function print() {
+    //     // var l;
+    //     // $.ajax({
+    //     //     type: "GET", 
+    //     //     url: " {{ url_for('printList') }} ",
+    //     //     contentType: "application/json",
+    //     //     success: function(response) {
+    //     //         console.log(response)
+    //     //     }
+    //     // })
+    //     if (selecting == true) {
+    //         console.log("in here");
+    //         selecting = false;
+    //         document.getElementById("Next_Done_Button").innerHTML = "Next";
+    //         return;
+    //     }
+    //     // document.getElementById("list").innerHTML = list;
+    // }
 
     function pop(id) {
         if (id == "comment") {
@@ -50,20 +166,9 @@
             popup.classList.toggle('show');
         }
     }
-
-    function startLoadingContainers() {
-        document.getElementById('loadPop').classList.toggle('show');
-        if (selecting == 0) {
-            document.getElementById("Next_Done_Button").disabled = false;
-            var c;
-            for (var n = 0; n < red.length; ++n) {
-                c = document.getElementById(red[n]);
-                c.style.background = 'white';
-            }
-            red = [];
-        }
-        selecting = selecting + 1;
-    }
+    // function startLoadingContainers() {
+    //     document.getElementById('loadPop').classList.toggle('show');
+    // }
 
     function login() {
         var name = document.getElementById("loginName").value;
@@ -81,58 +186,15 @@
         document.getElementById("loginName").value = "";
     }
 
-    function logComment() {
-        var comment = document.getElementById("commentToLog").value;
-        var name = document.getElementById("currentEmployee").innerHTML;
-        comment = "MANUAL COMMENT FROM USER (" + name.toUpperCase() + "): " + comment;
-        $.ajax({
-            type: "POST",
-            url: " {{ url_for('addComment') }} ",
-            data: {"comment": comment},
-        })
-        var popup = document.getElementById('commentPop');
-        popup.classList.toggle('show');
-        document.getElementById("commentToLog").value = "";
-    }
-
-    function getMoves() {
-        var t = document.getElementById("shipGrid");
-        var cell;
-        for (var r = 0, n = t.rows.length; r < n; r++) {
-            for (var c = 0, m = t.rows[r].cells.length; c < m; c++) {
-                cell = t.rows[r].cells[c];
-                if (cell.innerHTML == " ") cell.style.background = 'white';
-                else if (cell.innerHTML == " NAN") cell.style.background = 'black';
-            }
-        }
-    }
-
-    function newContainer() {
-        var containerName = document.getElementById("containerName").value;
-        var containerWeight = document.getElementById("containerWeight").value;
-        $.ajax({
-            type: "POST",
-            url: " {{ url_for('newContainers') }} ",
-            data: {"containerName": containerName,
-                   "containerWeight": containerWeight}
-        })
-        document.getElementById("containerName").value = "";
-        document.getElementById("containerWeight").value = "";
-        document.getElementById("submitContainer").disabled = true;
-        // document.getElementById("doneContainers").disabled = true;
-    }
-
-    function success() {
-        if (document.getElementById("containerWeight").value.length > 0 && document.getElementById("containerWeight").value.length > 0) { //
-            document.getElementById("submitContainer").disabled = false;
-            document.getElementById("doneContainers").disabled = false;
-        }
-        else {
-            document.getElementById("submitContainer").disabled = true;
-            document.getElementById("doneContainers").disabled = true;
-        }
-    }
-
+    // function newContainer() {
+    //     var containerName = document.getElementById("containerName").value;
+    //     $.ajax({
+    //         type: "POST",
+    //         url: " {{ url_for('newContainers') }} ",
+    //         data: {"containerName": containerName}
+    //     })
+    //     document.getElementById("containerName").value = "";
+    // }
 </script>
 <style>
     
@@ -141,24 +203,30 @@
         border: 2px solid rgb(200,200,200);
         letter-spacing: 1px;
         font-size: 0.8rem;
+        
     }
     
     td {
         border: 1px solid rgb(190,190,190);
         padding: 1px 2px;
         text-align: center;
-        width: 25px;
+        width: 30px;
         height: 50px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 30px;
+        max-height: 50px;
+        /* white-space: nowrap; */
+        /* word-wrap: break-word; */
     }
 
     .popup {
-        /* display: inline-block; */
-        display: flex;
+        display: inline-block;
     }
     .popup .popuptext {
         visibility: hidden;
         position:relative;
-        width: 3000px;
+        width: 2500px;
         background-color: gray;
         color: white;
         text-align: center;
@@ -169,6 +237,7 @@
     }
     .popup .show {
         visibility: visible;
+        /* -webkit-animation: fadeIn 1s; */
         animation: fadeIn 1s;
     }
   
@@ -176,42 +245,44 @@
 
 <head>
     <title>Team AIAboard</title>
-    <h1 style="text-align: center;">{{MANIFEST_NAME}} TESTTTTT</h1>
-    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Load/Unload</h2>
+    <h1 style="text-align: center;">{{MANIFEST_NAME}}</h1>
+    <h2 style="display: inline; position: relative; text-align: left; width: 100%;">Balance</h2>
     <h2 style="display: inline; position: relative; left: 70%;">User: <div style="display: inline" id="currentEmployee">{{EMPLOYEE_NAME}}</div></h2>
+    <div style="position: relative; left: 75%"><button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div>
     <!-- <h2 style="display: inline; position: relative; left: 70%;">User: {{EMPLOYEE_NAME}}</div></h2> -->
-    <div style="position: relative; left: 40%;">
-        <button id="logIn" onclick="pop(this.id)">Log In</button><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button>
-        <!-- <button onclick="startLoadingContainers()">Load Containers</button> -->
+    <div style="position: relative; left: 55%;">
         <div class="popup">
             <span class="popuptext" id="loginPop">
-              Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
-            </span>
-            <br/>
-            <span style="right: 40%; top: 40px;" class="popuptext" id="loadPop">
-                Enter the name of the container to be loaded <input type="text" id="containerName" onkeyup="success()"/> <br/>
-                Enter the weight of the container to be loaded <input type="text" id="containerWeight" onkeyup="success()"/> <br/>
-                <button id="submitContainer" disabled onclick="newContainer()">Submit</button><button id="doneContainers" disabled onclick="startLoadingContainers()">Done</button>
+                Enter your name: <input type="text" id="loginName"/> <button onclick="login()">Submit</button>
             </span>
             <br/>
             <span style="right: 80%; top: 100px;" class="popuptext" id="commentPop">
                 Enter the comment you would like to add to the log file: <input type="text" id="commentToLog"/> <button onclick="logComment()">Submit</button>
             </span>
+            <!-- <span style="right: 70%; top: 100px;" class="popuptext" id="loadPop">
+                Enter the name of the container to be loaded: <input type="text" id="containerName"/> <button onclick="newContainer()">Submit</button><button onclick="startLoadingContainers()">Done</button>
+            </span> -->
         </div>
     </div>
 </head>
 
-<body onload="getMoves()">
-<!-- <body> -->
+<body onload="initial()">
+
 
 
 
 <main>
-    <div id="instructions">
-        Please select containers requested for unloading from SHIP GRID: <br/>
-        Press "Done" below the grid when done selecting containers 
+    <div id="PrintStep">
+        Please select containers requested for unloading:<br/>
     </div>
-    <span id = "buffer" style="position: relative; top: 50px;">
+    <div id="clickNext">
+        After the container has been placed in the blue location, click 'Next'
+    </div>
+    <div id="successMessage" hidden style="top: -50px;">
+        SUCCESSFULLY BALANCED. To download the updated manifest to your machine's Downloads folder please select the link below.<br/>
+        After downloading the updated manifest, you can click 'Back To Home' to navigate back to the manifest upload to start the next service.
+    </div>
+    <span id = "buffer" style="position: relative; top: 178px;">
         <div style="position: relative; left: 23%;" id="bufferLabel">BUFFER GRID</div><br/>
         <table>
             <tr>
@@ -441,15 +512,14 @@
     </span>
 <!-- </form> -->
     <form action="{{ url_for('navigate') }}" method="GET">
-        <span style="position: relative; top: -400px;"><button>Back To Home</button></span>
+        <span style="position: relative; top: -275px;"><button id="back">Back To Home</button></span>
     </form>
-    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -420px;">Estimated time to completion: <span name="estimatedTime">{{time}}</span></span>
-    <span style="position: relative; right: -870px; top: -415px;"><button id="Next_Done_Button" onclick="print()">Done</button></span>
-    <!-- <span style="position: relative; right: -920px; top: -315px;"><button onclick="print()">Next</button></span> -->
-    <!-- <div style="position: relative; right: -1050px; top: -280px;"><button id="comment" onclick="pop(this.id)">Add comment to LogFile</button></div> -->
-    <!-- <div id="list"></div> -->
+    <span style="display: inline; position: relative; text-align: center; right: -400px; top: -295px;" id="estimation">Estimated time to completion: </span>
+    <span style="position: relative; right: -900px; top: -295px;"><button id="Next_Done_Button" onclick="getMoves()">Next</button></span>
+    <span style="position: relative; right: -500px; top: -295px;"><a id="downloadButton" onclick="getManifest()" href="{{ url_for('downloadManifest') }}" hidden>Download Updated Manifest</a></span>
+    <!-- <span style="position: relative; right: -800px; top: -175px;"><button onclick="print()">Next</button></span> -->
+    <!-- <div style="position: relative; right: -1050px; top: -160px;"><button>Add comment to LogFile</button></div> -->
 </main>
-
 </body>
 </html>
 
