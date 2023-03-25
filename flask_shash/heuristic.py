@@ -108,8 +108,8 @@ def pickable(array, col, nrows=nrows):
 
 
 def moveContainer(array, col, newCol, unload=0):
-    if(col==newCol):
-        return -1
+    # if(col==newCol):
+    #     return -1
     #find where to place container
     h1 = stackHeight(array,col)
     h2 = stackHeight(array,newCol) +1 
@@ -271,30 +271,31 @@ def LoadingBranch(testManifestArray, unloadIn, load):
         if(len(unloadable)>0):
             
             ind=0
-            for i in unloadable:
+            for i in range(len(unloadable)):
                 #unload item
-                removedShip = moveContainer(array=currentState.state.ship,col=i,newCol=0,unload=1)
-                #find row removed from to calc h
-                removedRow = stackHeight(currentState.state.ship,col=i)
-                #create new unloadlist
-                removedUnload = np.delete(currentState.unload,ind)
-                
+                # if len(currentState.unload) > i:
+                removedShip = moveContainer(array=currentState.state.ship,col=unloadable[i],newCol=0,unload=1)
+                    #find row removed from to calc h
+                removedRow = stackHeight(currentState.state.ship,col=unloadable[i])
+                    #create new unloadlist
+                removedUnload = np.delete(currentState.unload,i)
+                    
                 extraCost= 2*(costBetweenPink)
                 if(currentState.colPick==-1):
-                    extraCost = distToPink(removedRow,i) + 2*(costBetweenPink)
+                    extraCost = distToPink(removedRow,unloadable[i]) + 2*(costBetweenPink)
                 else:
-                    extraCost = costCol(currentState.state.ship, curCol=currentState.colPick, newCol=i, empty=1)
-                
-                newRemovedState = StateWrapper(State(removedShip),cost=extraCost + currentState.cost + distToPink(removedRow,i),movesList=currentState.movesList.copy(), load=currentState.load, unload=removedUnload, colPick=-1, moves=currentState.moves+1, status=0)
+                    extraCost = costCol(currentState.state.ship, curCol=currentState.colPick, newCol=unloadable[i], empty=1)
+                    
+                newRemovedState = StateWrapper(State(removedShip),cost=extraCost + currentState.cost + distToPink(removedRow,unloadable[i]),movesList=currentState.movesList.copy(), load=currentState.load, unload=removedUnload, colPick=-1, moves=currentState.moves+1, status=0)
                 newRemovedState.h = loadHeuristic(newRemovedState)
-                newRemovedState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=i), i].tolist()],[9,1], newRemovedState.status])
+                newRemovedState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=unloadable[i]), unloadable[i]].tolist()],[9,1], newRemovedState.status])
 
-                
-                
+                    
+                    
                 if(len(newRemovedState.load)==0 and len(newRemovedState.unload)==0):
-                    print("cost was", newRemovedState.cost)
+                    # print("cost was", newRemovedState.cost)
                     newRemovedState.cost += costBetweenPink
-                    print("cost is", newRemovedState.cost)
+                    # print("cost is", newRemovedState.cost)
                     if(minCost >= newRemovedState.cost) :
                         minCost=newRemovedState.cost
                         print("[FINAL]New Min Cost:", minCost)
@@ -304,7 +305,7 @@ def LoadingBranch(testManifestArray, unloadIn, load):
                     duplicateState.append(newRemovedState)
                     queueMain.put(PrioritizedItem(newRemovedState.h,newRemovedState.cost, newRemovedState))
                     
-                ind +=1
+                # ind +=1
     #     else:
     #         print("Nothing available to UNLOAD")
         
@@ -357,7 +358,7 @@ def LoadingBranch(testManifestArray, unloadIn, load):
             
             for i in range(ncols):
                 if(cntUnload[i]!=0):
-                    movedCol = nearestLoad(countUnload(currentState,i))
+                    movedCol = nearestLoad(countUnload(currentState),i)
                     
                     movedShip = moveContainer(currentState.state.ship,col=i,newCol= movedCol)
                     movedCost = costCol(currentState.state.ship,curCol=i, newCol=movedCol)
@@ -373,7 +374,7 @@ def LoadingBranch(testManifestArray, unloadIn, load):
                         
                     newMoveState = StateWrapper(State(movedShip), cost=extraCost + currentState.cost + movedCost ,movesList=currentState.movesList.copy(), load=currentState.load, unload=currentState.unload, colPick=movedCol, moves=currentState.moves+1, status=2)
                     newMoveState.h = loadHeuristic(newMoveState)
-                    newMoveState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=i), i].tolist()],[stackHeight(newMoveState.state.ship,col=i)+comp,i+comp], newMoveState.status])
+                    newMoveState.movesList.append([[currentState.state.ship[stackHeight(currentState.state.ship,col=i), i].tolist()],[stackHeight(newMoveState.state.ship,col=movedCol)+comp,movedCol+comp], newMoveState.status])
                     
                     if((newMoveState.state not in duplicateState) and newMoveState.cost < minCost):
                         duplicateState.append(newMoveState)

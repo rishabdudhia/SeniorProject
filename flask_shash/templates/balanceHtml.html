@@ -70,12 +70,26 @@
         start = start.replace('.', ',');
         var end = '[' + currEnd + ']';
         end = end.replace('.', ',');
-        var loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        var loggedComment = "";
+        if (currStart == "9.1") {
+            loggedComment = "Container \'" + currName + "\' loaded onto ship at position " + end;
+        }
+        else if (currEnd == "9.1") {
+            loggedComment = "Container \'" + currName + "\' unloaded from the ship from position " + start;
+        }
+        else {
+            loggedComment = "Container \'" + currName + "\' moved from position " + start + " to position " + end;
+        }
         // console.log(loggedComment);
         $.ajax({
             type: "POST",
             url: " {{ url_for('normalComment') }} ",
             data: {"comment": loggedComment},
+        })
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('moveContainerInManifest') }}",
+            data: {"step": currStep},
         })
         if (currStep > 0){
             document.getElementById(currStart).style.background = 'white';
