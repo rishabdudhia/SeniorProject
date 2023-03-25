@@ -249,9 +249,73 @@ def createMoveDict(testArray):
 #     return("", 200)
 
 
+
+def createManifestCopy(doc, start_line, end_line, start, end):
+    copy = open("manifest_copy.txt", 'w')   #overwrites the entire file
+    for i in range(len(doc)-1):
+        print(i)
+        if i == start_line:
+            copy.write(start)
+        elif i == end_line:
+            copy.write(end)
+        else:
+            copy.write(doc[i])
+        copy.write('\n')
+    copy.close()
+    return
+
+def moveContainerInManifest(step):
+    manifest = open(backend.manifest_filename,'r')
+    doc = manifest.read().split('\n')
+    manifest.close()
+    #print("doc[1] =", doc[1])
+    #print("dictOfMoves =", backend.dictOfMoves)
+    
+    start = "start " + str(step)
+    start = backend.dictOfMoves[start]     #string
+    print("start=", start)
+    start_row = int(start[0])
+    start_col = int(start[2])
+    start_line = ((start_row - 1) * 12) + (start_col - 1)
+    start = doc[start_line]                       #access to start postion in manifest
+    #print("start=", start)
+    #print("start_row=", start_row, "  start_col=", start_col)
+    start_data = start[10:]                 #save the start data
+
+    end = "end " + str(step)
+    end = backend.dictOfMoves[end]
+    end_row = int(end[0])
+    end_col = int(end[2])
+    end_line = ((end_row - 1) * 12) + (end_col - 1)
+    end = doc[end_line]
+    #print("end_row=", end_row, "  end_col=", end_col)
+    end_data = end[10:]
+
+    
+    print("start=", start, "    end=", end)
+    start = start[:10] + end_data
+    end = end[:10] + start_data
+    print("start=", start, "    end=", end)
+    
+
+    print(start_line, end_line)
+    manifest = open(backend.manifest_filename,'w')
+    for i in range(len(doc)-1):
+        print(i)
+        if i == start_line:
+            manifest.write(start)
+        elif i == end_line:
+            manifest.write(end)
+        else:
+            manifest.write(doc[i])
+        manifest.write('\n')
+    manifest.close()
+
+    createManifestCopy(doc, start_line, end_line, start, end)
+    return
+
+
 #Allows site to be hosted by running python script
 if __name__ == '__main__':
+    main()
     app.run(debug=True)
-
-
-
